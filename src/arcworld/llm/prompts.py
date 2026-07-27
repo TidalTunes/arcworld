@@ -39,6 +39,9 @@ real/simulated mismatch.
 ACTION6 is coordinate-bearing and cannot be created with api.action("ACTION6"). Always
 use api.click(x, y) for action 6. The planning context includes a structured scene with
 object bounding boxes and centroids; use it to choose evidence-grounded click coordinates.
+The returned action list must be non-empty. If ACTION6 is the only available action,
+select a salient non-background object from planning_context["scene"]["objects"] and
+click an integer coordinate inside its bounding box.
 """.strip()
 
 
