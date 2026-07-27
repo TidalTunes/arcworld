@@ -30,6 +30,8 @@ def test_plan_context_redacts_nested_identity() -> None:
             "game_id": "secret",
             "metadata": {"guid": "also-secret"},
         },
+        planning_context={"scene": {"environment_id": "context-secret"}},
         max_actions=3,
     )
     assert "secret" not in text
+    assert "context-secret" not in text

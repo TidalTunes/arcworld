@@ -35,6 +35,10 @@ Use api.action("ACTION1") ... api.action("ACTION5"), api.click(x, y),
 api.action("ACTION7"), api.reset(), api.repeat, and api.sequence. Prefer a short robust
 plan. The executor will simulate it and will cancel the remaining actions at the first
 real/simulated mismatch.
+
+ACTION6 is coordinate-bearing and cannot be created with api.action("ACTION6"). Always
+use api.click(x, y) for action 6. The planning context includes a structured scene with
+object bounding boxes and centroids; use it to choose evidence-grounded click coordinates.
 """.strip()
 
 
@@ -70,12 +74,14 @@ def plan_input(
     model_source: str,
     state: Mapping[str, Any],
     observation: Mapping[str, Any],
+    planning_context: Mapping[str, Any],
     max_actions: int,
 ) -> str:
     context = {
         "world_model": model_source,
         "simulator_state": dict(state),
         "observation": _strip_identity(dict(observation)),
+        "planning_context": _strip_identity(dict(planning_context)),
         "maximum_plan_actions": max_actions,
     }
     return json.dumps(context, separators=(",", ":"), sort_keys=True)

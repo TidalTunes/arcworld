@@ -64,6 +64,7 @@ class LLMPythonPlanner:
                 model_source=program.source,
                 state=state,
                 observation=observation,
+                planning_context=context,
                 max_actions=self.max_actions,
             ),
         )
