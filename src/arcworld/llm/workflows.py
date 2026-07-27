@@ -67,7 +67,12 @@ class LLMPythonPlanner:
                 max_actions=self.max_actions,
             ),
         )
-        plan = compile_plan(extract_python(response), context)
+        plan = compile_plan(
+            extract_python(response),
+            context,
+            origin_request_id=getattr(self.reasoner, "last_request_id", ""),
+            origin_response_digest=getattr(self.reasoner, "last_response_digest", ""),
+        )
         if len(plan.actions) > self.max_actions:
             raise ValueError(
                 f"generated plan has {len(plan.actions)} actions; limit is {self.max_actions}"

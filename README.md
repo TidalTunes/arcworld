@@ -32,8 +32,11 @@ for action cost and irreversible risk.
 - A shadow hypothesis ledger and disagreement-based probe ranking.
 - Bounded simulator search, a Python plan DSL, and per-action verified execution.
 - Optional OpenAI Responses API roles, isolated from benchmark metadata.
+- An authenticated OpenAI Codex CLI transport for API-key-free development runs.
 - An offline official-SDK adapter and a deterministic synthetic environment.
 - A restrained local dashboard with Actual / Predicted / Diff views and a model timeline.
+- A deep run audit linking provider receipts, generated source, sandbox execution,
+  simulation, and official environment transitions.
 
 The high-level composition lives in
 [`src/arcworld/agent.py`](src/arcworld/agent.py). Mechanisms live in focused packages.
@@ -57,6 +60,8 @@ arcworld gui
 ```
 
 The dashboard binds to `127.0.0.1:8765` and does not open a browser automatically.
+Real public-game runs are labeled separately from synthetic fixtures and show their
+event-chain and deep-audit status.
 
 To work with locally downloaded public environments:
 

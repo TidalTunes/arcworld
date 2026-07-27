@@ -40,15 +40,18 @@ class InductiveRevisionService:
         sources = []
         for index in range(self.candidate_count):
             ontology = ontologies[index % len(ontologies)]
+            source = self.proposer.propose(
+                history,
+                current_source=current.source if current else None,
+                mismatch=mismatch,
+                preferred_ontology=ontology,
+            )
             sources.append(
                 CandidateSpec(
-                    self.proposer.propose(
-                        history,
-                        current_source=current.source if current else None,
-                        mismatch=mismatch,
-                        preferred_ontology=ontology,
-                    ),
+                    source,
                     ontology,
+                    getattr(self.proposer.reasoner, "last_request_id", ""),
+                    getattr(self.proposer.reasoner, "last_response_digest", ""),
                 )
             )
         program, attempts = self.manager.reconcile(
@@ -65,6 +68,10 @@ class InductiveRevisionService:
                         "model_digest": attempt.digest,
                         "hypothesis_id": attempt.hypothesis_id,
                         "ontology": attempt.ontology,
+                        "source": self.manager.repository.load(attempt.model_digest).source,
+                        "source_sha256": attempt.model_digest,
+                        "origin_request_id": attempt.origin_request_id,
+                        "origin_response_digest": attempt.origin_response_digest,
                         "promoted": attempt.promoted,
                         "verification": attempt.report.to_jsonable(),
                     },
@@ -75,6 +82,7 @@ class InductiveRevisionService:
 @dataclass(slots=True)
 class LLMPlanningService:
     planner: LLMPythonPlanner
+    record: Callable[[str, dict[str, Any]], None] | None = None
 
     def plan(
         self,
@@ -95,7 +103,33 @@ class LLMPlanningService:
             observation=observation.to_jsonable(expose_identity=False),
             context=context,
         )
-        simulate_plan(program, state, observation, plan)
+        if self.record:
+            self.record(
+                "plan_generated",
+                {
+                    "model_digest": program.digest,
+                    "plan_digest": plan.source_digest,
+                    "source": plan.source,
+                    "source_sha256": plan.source_digest,
+                    "origin_request_id": plan.origin_request_id,
+                    "origin_response_digest": plan.origin_response_digest,
+                    "actions": [action.to_jsonable() for action in plan.actions],
+                    "build_plan_executed": True,
+                },
+            )
+        rollout = simulate_plan(program, state, observation, plan)
+        if self.record:
+            self.record(
+                "plan_simulated",
+                {
+                    "model_digest": program.digest,
+                    "plan_digest": plan.source_digest,
+                    "steps": len(rollout.steps),
+                    "terminal": rollout.terminal,
+                    "final_status": rollout.final_observation.status.value,
+                    "complete_before_real_action": True,
+                },
+            )
         return plan
 
 

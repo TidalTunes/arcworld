@@ -57,6 +57,37 @@ This can incur API cost. It uses the official SDK in hard-coded OFFLINE mode and
 a fresh model workspace for the episode. The trusted run label contains the game ID for
 human audit, but reasoner requests redact it.
 
+An authenticated Codex installation can provide the same OpenAI-only development
+transport without placing an API key in the project:
+
+```bash
+arcworld run-offline \
+  --game vc33-5430563c \
+  --environments-dir environment_files \
+  --workspace .arcworld \
+  --provider codex-cli \
+  --model gpt-5.6-luna \
+  --effort low \
+  --action-budget 1 \
+  --candidate-count 1
+```
+
+Each completion runs in a fresh empty, read-only directory with repository rules and
+user configuration excluded. The run fails closed if the model attempts a tool call.
+The event record retains the OpenAI provider thread ID, token usage, CLI version and
+binary hash, transcript hash, full response, and generated source links.
+
+Audit the complete chain after a run:
+
+```bash
+arcworld audit-run --store .arcworld/runs.db --run-id <run-id>
+```
+
+The audit checks the event hash chain, exact official environment-file hashes, live
+provider receipts, response-to-source hashes, world-model and plan sandbox receipts,
+pre-action simulation, and real SDK transitions. `verify-run` remains the smaller
+event-chain-only check.
+
 Do not report this as hidden-benchmark evidence. The 25 Public Demo games are exposed
 development data.
 

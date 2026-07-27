@@ -19,6 +19,8 @@ class RevisionAttempt:
     ontology: str
     report: VerificationReport
     promoted: bool
+    origin_request_id: str = ""
+    origin_response_digest: str = ""
 
     @property
     def digest(self) -> str:
@@ -29,6 +31,8 @@ class RevisionAttempt:
 class CandidateSpec:
     source: str
     ontology: str
+    origin_request_id: str = ""
+    origin_response_digest: str = ""
 
 
 @dataclass(slots=True)
@@ -51,6 +55,7 @@ class RevisionManager:
             item.id: item for item in self.ledger.candidates(replay_consistent_only=False)
         }
         hypotheses: dict[str, Hypothesis] = dict(prior_items)
+        origins: dict[str, tuple[str, str]] = {}
         passing: list[tuple[Hypothesis, VerificationReport]] = []
         for item in sources:
             spec = item if isinstance(item, CandidateSpec) else CandidateSpec(item, ontology)
@@ -64,6 +69,10 @@ class RevisionManager:
                 revision.digest,
                 spec.ontology,
                 complexity=len(spec.source) / 10_000,
+            )
+            origins[candidate.id] = (
+                spec.origin_request_id,
+                spec.origin_response_digest,
             )
             hypotheses.setdefault(candidate.id, candidate)
         attempts: list[RevisionAttempt] = []
@@ -102,6 +111,7 @@ class RevisionManager:
                     hypothesis.ontology,
                     report,
                     False,
+                    *origins.get(hypothesis.id, ("", "")),
                 )
             )
 
@@ -124,6 +134,8 @@ class RevisionManager:
                 item.ontology,
                 item.report,
                 item.hypothesis_id == winner.id,
+                item.origin_request_id,
+                item.origin_response_digest,
             )
             for item in attempts
         ]

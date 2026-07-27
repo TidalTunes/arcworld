@@ -16,7 +16,10 @@ from arcworld.types import Action, ActionKind
 class Plan:
     actions: tuple[Action, ...]
     source_digest: str = ""
+    source: str = ""
     rationale: str = ""
+    origin_request_id: str = ""
+    origin_response_digest: str = ""
 
     def __post_init__(self) -> None:
         if not self.actions:
@@ -55,6 +58,8 @@ def compile_plan(
     context: Mapping[str, Any],
     *,
     timeout_seconds: float = 2.0,
+    origin_request_id: str = "",
+    origin_response_digest: str = "",
 ) -> Plan:
     """Execute a validated ``build_plan(api, context)`` function."""
     normalized = source.strip() + "\n"
@@ -70,4 +75,10 @@ def compile_plan(
     if len(actions) > 512:
         raise ValueError("plan exceeds the 512-action safety limit")
     digest = hashlib.sha256(normalized.encode("utf-8")).hexdigest()
-    return Plan(actions=actions, source_digest=digest)
+    return Plan(
+        actions=actions,
+        source_digest=digest,
+        source=normalized,
+        origin_request_id=origin_request_id,
+        origin_response_digest=origin_response_digest,
+    )

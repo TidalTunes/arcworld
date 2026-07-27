@@ -4,7 +4,7 @@ const PALETTE = [
   "#ff851b", "#921231", "#4fcc30", "#a356d6"
 ];
 
-const state = { runs: [], timeline: [], runId: null, liveRunId: null };
+const state = { runs: [], timeline: [], runId: null, liveRunId: null, audit: null };
 const $ = (id) => document.getElementById(id);
 
 async function api(path, options = {}) {
@@ -53,7 +53,7 @@ function normalizeEvent(event) {
   }
   const transition = payload.transition || {};
   const actual = payload.actual || transition.after || payload.observation || payload;
-  const predicted = payload.predicted || actual;
+  const predicted = payload.predicted || null;
   const action = payload.action || transition.action || {};
   return {actual, predicted, action, payload};
 }
@@ -66,16 +66,25 @@ async function showEvent(index) {
   });
   const {actual, predicted, action, payload} = normalizeEvent(event);
   $("step-label").textContent = `${event.sequence} · ${event.kind}`;
-  $("action-label").textContent = action.id === undefined ? "—" : `ACTION${action.id}`;
+  $("action-label").textContent = action.id === undefined
+    ? "—"
+    : action.id === 6
+      ? `ACTION6(${action.x},${action.y})`
+      : `ACTION${action.id}`;
   $("model-label").textContent = payload.model_digest?.slice(0, 16) || "—";
   const diff = payload.diff;
-  $("verdict-label").textContent = diff ? (diff.exact ? "match" : "mismatch") : "observation";
-  $("verdict-label").style.color = diff && !diff.exact ? "var(--danger)" : "var(--ok)";
+  $("verdict-label").textContent = diff ? (diff.exact ? "match" : "mismatch") : "not evaluated";
+  $("verdict-label").style.color = diff
+    ? (diff.exact ? "var(--ok)" : "var(--danger)")
+    : "var(--muted)";
   const actualGrid = latestFrame(actual), predictedGrid = latestFrame(predicted);
   drawGrid($("actual-grid"), actualGrid);
   drawGrid($("predicted-grid"), predictedGrid);
-  drawGrid($("diff-grid"), actualGrid, predictedGrid);
+  drawGrid($("diff-grid"), predictedGrid ? actualGrid : null, predictedGrid);
   $("raw-event").textContent = JSON.stringify(event, null, 2);
+  const source = payload.source ||
+    (event.kind === "reasoner_response" ? payload.response : null);
+  $("source-code").textContent = source || "This event has no generated Python artifact.";
 
   if (actualGrid && predictedGrid) {
     const inspection = await api("/api/inspect", {
@@ -115,7 +124,25 @@ async function loadRun(runId) {
   const data = await api(`/api/runs/${runId}`);
   state.runId = runId;
   state.timeline = data.timeline;
+  state.audit = data.audit;
+  const experiment = data.run.config?.experiment || {};
+  const environment = experiment.environment || {};
+  const real = experiment.run_kind === "official-public-game-live-llm";
   $("run-meta").textContent = `${data.run.label} · ${data.run.started_at} · ${data.timeline.length} events`;
+  const evidence = $("run-evidence");
+  evidence.className = "evidence-card";
+  if (real) {
+    const passed = data.audit?.passed === true;
+    evidence.classList.add("real", passed ? "verified" : "invalid");
+    evidence.textContent =
+      `REAL PUBLIC GAME · ${environment.game_id || "unknown"} · ` +
+      `OPENAI ${data.run.config.revision_model} · ` +
+      `${passed ? "FULL EVIDENCE AUDIT PASSED" : "evidence incomplete or invalid"} · ` +
+      `chain ${data.event_chain_valid ? "valid" : "INVALID"}`;
+  } else {
+    evidence.textContent =
+      `SYNTHETIC / FIXTURE · chain ${data.event_chain_valid ? "valid" : "INVALID"}`;
+  }
   $("timeline").innerHTML = data.timeline.map((event, index) =>
     `<li><button data-index="${index}">${String(event.sequence).padStart(3, "0")} · ${event.kind}</button></li>`
   ).join("");
@@ -132,7 +159,9 @@ async function loadRun(runId) {
 async function refreshRuns(selectRun = null) {
   state.runs = await api("/api/runs");
   $("run-select").innerHTML = state.runs.map((run) =>
-    `<option value="${run.id}">${run.label} · ${run.event_count}</option>`
+    `<option value="${run.id}">` +
+    `${run.config?.experiment?.run_kind === "official-public-game-live-llm" ? "[REAL LLM] " : "[TOY] "}` +
+    `${run.label} · ${run.event_count}</option>`
   ).join("");
   const runId = selectRun || state.runs[0]?.id;
   if (runId) {

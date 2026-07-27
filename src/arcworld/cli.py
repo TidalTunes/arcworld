@@ -5,7 +5,9 @@ from __future__ import annotations
 import argparse
 import importlib.util
 import json
+import os
 import platform
+import subprocess
 import sys
 from pathlib import Path
 from typing import Any
@@ -46,6 +48,16 @@ def build_parser() -> argparse.ArgumentParser:
     run.add_argument("--workspace", type=Path, default=Path(".arcworld"))
     run.add_argument("--action-budget", type=int, default=500)
     run.add_argument("--candidate-count", type=int, default=2)
+    run.add_argument(
+        "--provider",
+        choices=("openai-api", "codex-cli"),
+        default="openai-api",
+        help="explicit live OpenAI transport",
+    )
+    run.add_argument("--model", help="override the provider model")
+    run.add_argument("--effort", help="override the provider reasoning effort")
+    run.add_argument("--codex-bin", type=Path, help="Codex CLI executable")
+    run.add_argument("--seed", type=int, default=0)
 
     score = subparsers.add_parser("score", help="compute one normalized RHAE game score")
     score.add_argument("--baselines", required=True, help="comma-separated human actions")
@@ -59,6 +71,13 @@ def build_parser() -> argparse.ArgumentParser:
     verify = subparsers.add_parser("verify-run", help="verify a run's event hash chain")
     verify.add_argument("--store", type=Path, default=Path(".arcworld/runs.db"))
     verify.add_argument("--run-id", required=True)
+
+    audit = subparsers.add_parser(
+        "audit-run",
+        help="audit official-game, live-LLM, generated-code, and real-action evidence",
+    )
+    audit.add_argument("--store", type=Path, default=Path(".arcworld/runs.db"))
+    audit.add_argument("--run-id", required=True)
     return parser
 
 
@@ -79,11 +98,18 @@ def main(argv: list[str] | None = None) -> None:
             args.workspace,
             args.action_budget,
             args.candidate_count,
+            args.provider,
+            args.model,
+            args.effort,
+            args.codex_bin,
+            args.seed,
         )
     elif args.command == "score":
         _score(args.baselines, args.actions, args.completed)
     elif args.command == "verify-run":
         _verify_run(args.store, args.run_id)
+    elif args.command == "audit-run":
+        _audit_run(args.store, args.run_id)
 
 
 def _doctor() -> None:
@@ -214,31 +240,86 @@ def _run_offline(
     workspace: Path,
     action_budget: int,
     candidate_count: int,
+    provider: str,
+    model: str | None,
+    effort: str | None,
+    codex_bin: Path | None,
+    seed: int,
 ) -> None:
-    import os
-
-    if not os.environ.get("OPENAI_API_KEY"):
+    if provider == "openai-api" and not os.environ.get("OPENAI_API_KEY"):
         raise SystemExit("OPENAI_API_KEY is required for the OpenAI development composition")
     if action_budget <= 0:
         raise SystemExit("--action-budget must be positive")
     if not 1 <= candidate_count <= 8:
         raise SystemExit("--candidate-count must be in 1..8")
 
-    from arcworld.composition import build_openai_agent
+    from arcworld.audit import audit_real_llm_run
+    from arcworld.composition import build_codex_agent, build_openai_agent
     from arcworld.env.arc_adapter import ArcAdapter
+    from arcworld.env.provenance import collect_environment_provenance
 
+    provenance = collect_environment_provenance(environments_dir, game_id)
     environment = ArcAdapter.open_offline(
         game_id,
         environments_dir=environments_dir,
         save_recording=True,
+        seed=seed,
     )
-    bundle = build_openai_agent(
-        environment,
-        workspace=workspace,
-        label=f"offline-development:{game_id}",
-        candidate_count=candidate_count,
-    )
-    result = bundle.agent.run(action_budget=action_budget)
+    run_metadata = {
+        "run_kind": "official-public-game-live-llm",
+        "evaluation_lane": "public-demo",
+        "environment": provenance.to_jsonable(),
+        "provider_transport": provider,
+        "action_budget": action_budget,
+        "candidate_count": candidate_count,
+        "seed": seed,
+        "git": _git_state(),
+        "python": platform.python_version(),
+    }
+    if provider == "codex-cli":
+        bundle = build_codex_agent(
+            environment,
+            model=model or "gpt-5.6-luna",
+            effort=effort or "low",
+            executable=codex_bin,
+            workspace=workspace,
+            label=f"public-demo-live-llm:{game_id}:codex-cli",
+            candidate_count=candidate_count,
+            run_metadata=run_metadata,
+        )
+    else:
+        bundle = build_openai_agent(
+            environment,
+            model=model,
+            effort=effort,
+            workspace=workspace,
+            label=f"public-demo-live-llm:{game_id}:responses-api",
+            candidate_count=candidate_count,
+            run_metadata=run_metadata,
+        )
+    try:
+        result = bundle.agent.run(action_budget=action_budget)
+    except Exception as error:
+        store = RunStore(workspace / "runs.db")
+        store.append(
+            bundle.run_id,
+            "run_error",
+            {"error_type": type(error).__name__, "error": str(error)},
+        )
+        print(
+            json.dumps(
+                {
+                    "run_id": bundle.run_id,
+                    "episode_workspace": str(bundle.episode_workspace),
+                    "error_type": type(error).__name__,
+                    "error": str(error),
+                },
+                indent=2,
+            )
+        )
+        raise
+    store = RunStore(workspace / "runs.db")
+    audit = audit_real_llm_run(store, bundle.run_id)
     print(
         json.dumps(
             {
@@ -248,10 +329,14 @@ def _run_offline(
                 "actions": result.real_actions,
                 "revisions": result.revisions,
                 "reason": result.reason,
+                "audit_passed": audit.passed,
+                "audit_checks": {check.name: check.passed for check in audit.checks},
             },
             indent=2,
         )
     )
+    if not audit.passed:
+        raise SystemExit(2)
 
 
 def _score(baselines_text: str, actions_text: str, completed_text: str) -> None:
@@ -280,6 +365,38 @@ def _verify_run(store_path: Path, run_id: str) -> None:
     print(json.dumps({"run_id": run_id, "event_chain_valid": valid}, indent=2))
     if not valid:
         raise SystemExit(1)
+
+
+def _audit_run(store_path: Path, run_id: str) -> None:
+    from arcworld.audit import audit_real_llm_run
+
+    store = RunStore(store_path)
+    try:
+        report = audit_real_llm_run(store, run_id)
+    except KeyError as error:
+        raise SystemExit(f"run not found: {run_id}") from error
+    print(json.dumps(report.to_jsonable(), indent=2))
+    if not report.passed:
+        raise SystemExit(2)
+
+
+def _git_state() -> dict[str, Any]:
+    commit = subprocess.run(
+        ["git", "rev-parse", "HEAD"],
+        text=True,
+        capture_output=True,
+        check=False,
+    )
+    status = subprocess.run(
+        ["git", "status", "--porcelain=v1"],
+        text=True,
+        capture_output=True,
+        check=False,
+    )
+    return {
+        "commit": commit.stdout.strip() if commit.returncode == 0 else None,
+        "dirty": bool(status.stdout.strip()) if status.returncode == 0 else None,
+    }
 
 
 if __name__ == "__main__":

@@ -7,6 +7,7 @@ from dataclasses import dataclass
 from pathlib import Path
 from typing import Any
 
+from arcworld.audit import audit_real_llm_run
 from arcworld.env.toy import TOY_MODEL_SOURCE, ToyKeyDoorEnvironment
 from arcworld.models.contract import RuleProgram
 from arcworld.perception.components import parse_scene
@@ -48,7 +49,17 @@ def create_app(store_path: Path) -> Any:
     @app.get("/api/runs/{run_id}")
     def run(run_id: str) -> dict[str, Any]:
         try:
-            return {"run": store.run(run_id), "timeline": store.timeline(run_id)}
+            run_record = store.run(run_id)
+            experiment = _as_mapping(_as_mapping(run_record["config"]).get("experiment", {}))
+            audit = None
+            if experiment.get("run_kind") == "official-public-game-live-llm":
+                audit = audit_real_llm_run(store, run_id).to_jsonable()
+            return {
+                "run": run_record,
+                "timeline": store.timeline(run_id),
+                "audit": audit,
+                "event_chain_valid": store.verify_chain(run_id),
+            }
         except KeyError as error:
             raise HTTPException(status_code=404, detail="run not found") from error
 

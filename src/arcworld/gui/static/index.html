@@ -23,6 +23,7 @@
         <label for="run-select">Run</label>
         <select id="run-select"></select>
         <div id="run-meta" class="meta"></div>
+        <div id="run-evidence" class="evidence-card">No run selected</div>
         <h2>Evidence timeline</h2>
         <ol id="timeline"></ol>
       </aside>
@@ -83,6 +84,10 @@
         <details>
           <summary>Raw event evidence</summary>
           <pre id="raw-event"></pre>
+        </details>
+        <details>
+          <summary>Generated Python artifact</summary>
+          <pre id="source-code">Select a model, plan, or reasoner-response event.</pre>
         </details>
       </section>
     </main>

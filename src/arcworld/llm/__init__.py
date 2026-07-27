@@ -1,9 +1,11 @@
 """Optional language-model roles; no network use occurs until explicitly invoked."""
 
 from arcworld.llm.base import CallableReasoner, Reasoner, ReasonerConfig, RecordingReasoner
+from arcworld.llm.codex_cli import CodexCLIReasoner
 from arcworld.llm.openai_client import OpenAIResponsesReasoner, default_role_configs
 
 __all__ = [
+    "CodexCLIReasoner",
     "OpenAIResponsesReasoner",
     "CallableReasoner",
     "Reasoner",

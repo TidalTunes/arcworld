@@ -3,7 +3,7 @@
 from __future__ import annotations
 
 import os
-from dataclasses import dataclass
+from dataclasses import dataclass, field
 from typing import Any
 
 from arcworld.llm.base import ReasonerConfig
@@ -34,6 +34,7 @@ def default_role_configs() -> dict[str, ReasonerConfig]:
 class OpenAIResponsesReasoner:
     config: ReasonerConfig
     client: Any = None
+    last_completion_metadata: dict[str, Any] = field(default_factory=dict, init=False)
 
     def complete(self, *, instructions: str, input_text: str) -> str:
         client = self.client
@@ -50,4 +51,15 @@ class OpenAIResponsesReasoner:
             instructions=instructions,
             input=input_text,
         )
+        usage = getattr(response, "usage", None)
+        model_dump = getattr(usage, "model_dump", None)
+        if callable(model_dump):
+            usage = model_dump(mode="json")
+        self.last_completion_metadata = {
+            "provider": "openai",
+            "transport": "responses-api",
+            "response_id": str(getattr(response, "id", "")),
+            "response_model": str(getattr(response, "model", self.config.model)),
+            "usage": usage if isinstance(usage, dict) else {},
+        }
         return str(response.output_text)

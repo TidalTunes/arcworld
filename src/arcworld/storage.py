@@ -157,7 +157,9 @@ class RunStore:
 
     def verify_chain(self, run_id: str) -> bool:
         previous_hash: str | None = None
-        for event in self.timeline(run_id):
+        for expected_sequence, event in enumerate(self.timeline(run_id)):
+            if int(event["sequence"]) != expected_sequence:
+                return False
             payload_json = _json(event["payload"])
             expected = _event_hash(
                 run_id,
@@ -190,25 +192,41 @@ class RunStore:
             previous_hash: str | None = None
             events = connection.execute(
                 """
-                SELECT id, sequence, created_at, kind, payload_json
+                SELECT id, sequence, created_at, kind, payload_json, previous_hash, event_hash
                 FROM events WHERE run_id = ? ORDER BY sequence
                 """,
                 (run_id,),
             ).fetchall()
-            for event_id, sequence, created_at, kind, payload_json in events:
+            for (
+                event_id,
+                sequence,
+                created_at,
+                kind,
+                payload_json,
+                stored_previous_hash,
+                stored_event_hash,
+            ) in events:
+                if stored_event_hash is not None:
+                    previous_hash = str(stored_event_hash)
+                    continue
+                backfilled_previous_hash = (
+                    str(stored_previous_hash) if stored_previous_hash is not None else previous_hash
+                )
                 event_hash = _event_hash(
                     str(run_id),
                     int(sequence),
                     str(created_at),
                     str(kind),
                     str(payload_json),
-                    previous_hash,
+                    backfilled_previous_hash,
                 )
                 connection.execute(
                     """
-                    UPDATE events SET previous_hash = ?, event_hash = ? WHERE id = ?
+                    UPDATE events
+                    SET previous_hash = COALESCE(previous_hash, ?), event_hash = ?
+                    WHERE id = ? AND event_hash IS NULL
                     """,
-                    (previous_hash, event_hash, event_id),
+                    (backfilled_previous_hash, event_hash, event_id),
                 )
                 previous_hash = event_hash
         connection.commit()
