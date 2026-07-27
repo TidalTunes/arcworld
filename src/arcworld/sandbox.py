@@ -48,6 +48,7 @@ SAFE = {
     "enumerate": enumerate,
     "float": float,
     "int": int,
+    "isinstance": isinstance,
     "len": len,
     "list": list,
     "max": max,

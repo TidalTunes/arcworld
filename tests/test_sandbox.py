@@ -54,6 +54,19 @@ def render(state): return [[0]]
     assert program.step_state({"value": 0}, action)["value"] == 1
 
 
+def test_generated_code_can_use_safe_type_predicates() -> None:
+    program = RuleProgram.from_source(
+        """
+def initial_state(observation):
+    return {"is_mapping": isinstance(observation, dict)}
+def step(state, action): return state
+def render(state): return [[1 if state["is_mapping"] else 0]]
+"""
+    )
+    observation = Observation(frames=(freeze_grid([[0]]),))
+    assert program.initial_state(observation) == {"is_mapping": True}
+
+
 def test_generated_plan_is_killed_on_timeout() -> None:
     with pytest.raises(SandboxTimeout):
         compile_plan(
