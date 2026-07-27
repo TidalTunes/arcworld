@@ -122,6 +122,20 @@ trained on, and rerun by the community. ARCWorld therefore:
 See [`research/evaluation_protocol.md`](research/evaluation_protocol.md) for the full
 protocol.
 
+## Verified real-game infrastructure run
+
+On 2026-07-27, commit `39c6f88` executed an authenticated
+`gpt-5.6-sol`/high-effort episode on the exact official
+`vc33-5430563c` Public Demo environment in SDK OFFLINE mode. The model generated
+and executed both world-model and plan Python, simulated the plan, spent one real
+ACTION6 click, observed a counterexample, generated a revised model, and replayed
+the complete one-transition history before promotion. All seven deep-audit checks
+passed.
+
+This was a one-action infrastructure-legitimacy test, not a solve or score claim.
+The hash-anchored summary is in
+[`evidence/vc33-live-llm-2026-07-27.json`](evidence/vc33-live-llm-2026-07-27.json).
+
 ## Status
 
 This is a research scaffold, not a claimed competition solution. It provides the

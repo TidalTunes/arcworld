@@ -1,0 +1,116 @@
+{
+  "schema_version": 1,
+  "claim": "One-action infrastructure-legitimacy test; not a benchmark score or solve claim.",
+  "run_id": "7791c5007f4f45a191436eb9a91831c3",
+  "started_at_utc": "2026-07-27T22:46:44.573969+00:00",
+  "implementation": {
+    "git_commit": "39c6f88eca565c6227bd9cc9941e46b1f50e5305",
+    "git_dirty": false,
+    "python": "3.13.6"
+  },
+  "environment": {
+    "evaluation_lane": "public-demo",
+    "game_id": "vc33-5430563c",
+    "class_name": "Vc33",
+    "operation_mode": "offline",
+    "arc_agi_version": "0.9.9",
+    "arcengine_version": "0.9.3",
+    "metadata_sha256": "0af9ab4e12f5d88dcda53808d61df7056e2f2104d06a946dbdab401353cffa94",
+    "source_sha256": "8afa9f55054b2a2460b6c44ec5c66e120f6d6f4c2289e24d50832a68d1e3fcfd"
+  },
+  "provider": {
+    "organization": "OpenAI",
+    "transport": "codex-cli",
+    "cli_version": "codex-cli 0.146.0-alpha.3.1",
+    "cli_executable_sha256": "6d8be49e49751554df16572369e636cbe02c84b208cad3dc35528c846eeca223",
+    "model": "gpt-5.6-sol",
+    "reasoning_effort": "high",
+    "completion_count": 3,
+    "tool_event_count": 0,
+    "completions": [
+      {
+        "role": "revision",
+        "provider_anchor_sha256": "1be8a296fc93d4868cf2ff203592aa0180a2032dad3fa72049f7f398584d198c",
+        "transcript_sha256": "ec909d679263772b9f60c71195954b45131fa4a22dd92d72eaa90fe4c9fdd126",
+        "response_sha256": "a01accb9d70a53403479154023bb66f231fb6a5efa9828216c604d80210700f7",
+        "generated_source_sha256": "55f55028033ff20d908b848859586121ca7f43c8f4706ee32aa737ee11645f13",
+        "input_tokens": 111467,
+        "cached_input_tokens": 12032,
+        "output_tokens": 964,
+        "reasoning_output_tokens": 516
+      },
+      {
+        "role": "planning",
+        "provider_anchor_sha256": "ad37f851ddff44fe64da7a01f930e06c0fa9b428b2d85a7886ddf6f923052ec6",
+        "transcript_sha256": "4947843cdeab348c3f1e2ef1e191ec7de9863c3968922fdaf6f18b5a32102766",
+        "response_sha256": "8822738bde6659aa9b3361d58d35ccf5c74f57a04394155facbd795247b7c172",
+        "generated_source_sha256": "e2d8cb8964860e723a0e6350d0ef593d0feea0b8746b9e51c2a8feeef9bbbe95",
+        "input_tokens": 57937,
+        "cached_input_tokens": 12032,
+        "output_tokens": 132,
+        "reasoning_output_tokens": 104
+      },
+      {
+        "role": "revision",
+        "provider_anchor_sha256": "a2904b90622c06964fb03fba20ddaa646026b252ba218790cd2e0c2ec2f5522a",
+        "transcript_sha256": "cb77131df6edea35bdcd02255d7e1363bd05398f4364bad4a772605f3fcef703",
+        "response_sha256": "30efff7514d3d9cc8a627da44f6c047545bebca6b31f0123003b5d48438ca01b",
+        "generated_source_sha256": "1936147f10860163120464b248c5639046069cf6a232cf38a89887937c52d1e9",
+        "input_tokens": 132327,
+        "cached_input_tokens": 12032,
+        "output_tokens": 2213,
+        "reasoning_output_tokens": 1437
+      }
+    ]
+  },
+  "generated_execution": {
+    "initial_world_model_sha256": "55f55028033ff20d908b848859586121ca7f43c8f4706ee32aa737ee11645f13",
+    "initial_world_model_source_bytes": 1946,
+    "initial_replay_passed": true,
+    "plan_sha256": "e2d8cb8964860e723a0e6350d0ef593d0feea0b8746b9e51c2a8feeef9bbbe95",
+    "plan_source": "def build_plan(api, context):\n    return [api.click(48, 46)]\n",
+    "build_plan_sandbox_executed": true,
+    "complete_plan_simulated_before_real_action": true,
+    "counterexample_observed": true,
+    "revised_world_model_sha256": "1936147f10860163120464b248c5639046069cf6a232cf38a89887937c52d1e9",
+    "revised_world_model_source_bytes": 3339,
+    "revised_model_replayed_all_known_transitions": true
+  },
+  "real_execution": {
+    "action": {
+      "id": 6,
+      "x": 48,
+      "y": 46
+    },
+    "sdk_echoed_action": true,
+    "sdk_session_guid_present": true,
+    "animation_frames": 1,
+    "changed_pixels": 1,
+    "predicted_observation_sha256": "742d69764e47a65081cb6dd81a56e01d192c3aab1dcee4610c22e3921351b03c",
+    "actual_observation_sha256": "533540b71aa0ddc6cd9d83ed374033b4bdeafeb60fc944ba9531027ceb73e2a5",
+    "sdk_recording_sha256": "c5876ebb59061bebd720bbd5d6bff3a8f2125bae0dd2d890e05ba0bb253c5712",
+    "sdk_recording_lines": 2
+  },
+  "result": {
+    "status": "NOT_FINISHED",
+    "real_actions": 1,
+    "revisions": 2,
+    "stop_reason": "action_budget",
+    "score_claimed": false
+  },
+  "integrity": {
+    "event_count": 19,
+    "event_chain_valid": true,
+    "head_event_sha256": "f7912c8d72b31f89e6fd9a6550c9025a08c6b0120b62cd5149492f522b4d8ff3",
+    "deep_audit_passed": true,
+    "checks": {
+      "tamper_evident_event_chain": true,
+      "complete_run_lifecycle": true,
+      "official_public_game_assets": true,
+      "live_openai_completion_provenance": true,
+      "llm_world_model_source_executed": true,
+      "llm_plan_source_executed": true,
+      "real_official_environment_transition": true
+    }
+  }
+}

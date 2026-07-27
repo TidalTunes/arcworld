@@ -1,7 +1,7 @@
 # ARCWorld progress ledger
 
 **Current snapshot:** 2026-07-27
-**Project phase:** integrated research baseline; blind benchmark work not started
+**Project phase:** real public-game LLM infrastructure validated; blind benchmark work not started
 **Benchmark claim:** none
 **Hidden-evaluation claim:** none
 
@@ -27,8 +27,8 @@ README.
 |---|---|---|
 | Source-linked benchmark/strategy research | ✅ | `research/` landscape and source registries |
 | Domain types and environment protocol | ✅ | `types.py`, `env/base.py`, replay and toy environments |
-| Official SDK offline adapter | 🟨 | Six SDK-free tests pass; pinned-SDK/local-game audit passed separately; scored integration is pending |
-| Persistent evidence ledger | 🟨 | SQLite events are transactional and hash-chained; final seals and crash tests do not exist |
+| Official SDK offline adapter | ✅ | Real `vc33-5430563c` run plus adapter/provenance tests pass in pinned SDK OFFLINE mode |
+| Persistent evidence ledger | 🟨 | Transactional hash chain, tamper-preserving reopen, provider/artifact links, and deep audit work; signed final seals remain absent |
 | Object-centric perception | 🟨 | Components, relations, tracking, and alternatives exist; ontology lattice is limited |
 | Executable model contract and replay verifier | ✅ | Source validation, content-addressing, exact replay, and toy certification work |
 | Single active plus weighted shadows | 🟨 | Joint model/ontology IDs, complete revalidation, promotion, and control integration work; no blind ablation |
@@ -37,14 +37,14 @@ README.
 | Tiered exact/semantic verification | 🟨 | Exact and semantic diffs exist; tier policy and shadow likelihoods are incomplete |
 | Planning | 🟨 | Bounded BFS, plan DSL, and verified executor exist; CEGAR and portfolio do not |
 | Short high-level agent loop | ✅ | Protocol-oriented controller plus concrete revision/probe/plan services pass a local-reasoner end-to-end test |
-| Optional OpenAI development adapter | 🟨 | Sanitized, recorded requests and responses exist; no live API test, usage/cost capture, or retry policy |
+| Optional OpenAI development transports | 🟨 | Authenticated Codex CLI live run passed with provider IDs and token usage; Responses API, cost capture, and retry policy remain untested |
 | Synthetic environment | ✅ | Deterministic key-door toy world and exact model |
 | Synthetic blind holdout suite | ⬜ | One visible toy is not a blind suite |
-| Local inspection GUI | 🟨 | Actual/Predicted/Diff, objects, relations, timeline, and toy controls exist |
+| Local inspection GUI | ✅ | Typed real/toy runs, deep-audit status, generated source, Actual/Predicted/Diff, and timeline are exposed; API integration test passes |
 | Scoring utilities | ✅ | Formula helpers, CLI, eight edge/reference tests, and a 5,000-game research differential check pass |
-| Automated tests | ✅ | 48 tests across 13 files pass in the project virtual environment |
+| Automated tests | ✅ | 66 tests across 16 files pass in the project virtual environment |
 | Lint/type/test gate | ✅ | Ruff, strict mypy, and pytest pass |
-| Public Demo evaluation | ⬜ | No 25-game run has been performed |
+| Public Demo evaluation | 🟨 | One-action `vc33` infrastructure test passed; no solve, score, or 25-game aggregate has been attempted |
 | Kaggle submission/evaluation | ⬜ | No submission has been performed |
 | Git history and GitHub remote | ✅ | Public `TidalTunes/arcworld` remote and audited baseline commit |
 
@@ -76,7 +76,7 @@ README.
 - [x] Offline-only official SDK adapter with lazy optional imports, action
   availability checks, and explicit refusal of a competition-mode environment
   override.
-- [ ] SDK adapter exercised against the installed official package and a real
+- [x] SDK adapter exercised against the installed official package and a real
   locally downloaded Public Demo environment.
 
 ### Evidence and artifacts
@@ -93,7 +93,9 @@ README.
 - [ ] Crash-consistency and concurrent-append tests.
 - [x] Sanitized reasoner request, response, config hashes, latency, revision
   reports, action intent, raw result, and derived analysis are recorded.
-- [ ] Provider token usage and monetary cost provenance.
+- [x] Provider token usage provenance for Codex CLI and Responses API-shaped
+  completions.
+- [ ] Monetary cost provenance.
 
 ### Perception
 
@@ -184,7 +186,8 @@ README.
   dedicated leakage tests pass.
 - [ ] Model-call retry, timeout, rate-limit, and invalid-output policy.
 - [x] Request/response/config hashes and latency records.
-- [ ] Provider token usage and cost records.
+- [x] Provider token usage records.
+- [ ] Provider cost records.
 - [x] In-process `CallableReasoner` and generic local composition.
 - [ ] Packaged Kaggle local-checkpoint profile/notebook.
 - [ ] Deterministic fallback when the reasoner is unavailable.
@@ -227,9 +230,9 @@ README.
 
 - [x] Domain, model, perception, hypothesis/probe, planning, storage/GUI API,
   and end-to-end toy CLI tests.
-- [x] 48 tests pass in `.venv`.
+- [x] 66 tests pass in `.venv`.
 - [x] Ruff reports no issues.
-- [x] Strict mypy reports no issues across 43 checked source modules.
+- [x] Strict mypy reports no issues across 45 checked source modules.
 - [x] Dedicated scoring edge-case tests.
 - [x] Six dependency-free official-adapter contract tests.
 - [x] Generated-code module-scope, global-purity, and timeout tests.
@@ -261,7 +264,8 @@ README.
   does not require those optional packages.
 - [ ] Browser-level GUI test: the API is covered, but the rendered browser UI
   has not been exercised automatically.
-- [ ] Live OpenAI adapter test: the package is installed but no API key was
+- [x] Live authenticated OpenAI Codex CLI test on an official Public Demo game.
+- [ ] Live Responses API test: the package is installed but no API key was
   configured.
 
 These are explicit gaps, not passing checks.
@@ -389,6 +393,30 @@ These are explicit gaps, not passing checks.
   produced.
 - Created the public `TidalTunes/arcworld` GitHub repository and added a
   Python 3.12/3.13 CI gate.
+
+### 2026-07-27 — real public-game LLM execution
+
+- Acquired and byte-hashed the exact official `vc33-5430563c` Public Demo
+  environment, then reopened it through the pinned SDK in hard-coded OFFLINE
+  mode.
+- Retained two fail-closed Luna attempts: one coordinate-free ACTION6 plan and
+  one empty plan were rejected before a real action.
+- Retained one Sol attempt whose generated world model was rejected because the
+  sandbox omitted an undocumented safe builtin; added `isinstance` and a
+  regression test before rerunning.
+- Completed run `7791c5007f4f45a191436eb9a91831c3` using
+  `gpt-5.6-sol`, high effort, seed 0, candidate count 1, and action budget 1.
+- The LLM generated and sandbox-executed a 1,946-byte world model and the plan
+  `return [api.click(48, 46)]`; the complete plan was simulated before the
+  official SDK accepted the click.
+- The real click changed one pixel, invalidated the initial prediction, and
+  triggered a 3,339-byte revised model that replayed the known transition
+  exactly before promotion.
+- All seven deep-audit checks and the 19-event hash chain passed. The official
+  SDK recording independently contains RESET followed by ACTION6(48,46).
+- Anchored a compact, non-score attestation in
+  `evidence/vc33-live-llm-2026-07-27.json`. No game completion, benchmark score,
+  Kaggle submission, or hidden-evaluation claim is made.
 
 ## How to update this file
 
