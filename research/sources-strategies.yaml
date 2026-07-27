@@ -1,0 +1,777 @@
+schema_version: 1
+snapshot_date: "2026-07-26"
+scope: "ARC-AGI-3 interactive-agent performance, strategies, and adjacent world-model research"
+companion_report: "research/landscape.md"
+
+comparability_warning: >-
+  Official Semi-Private scores, Kaggle hidden-game scores, and scores on the 25
+  openly available Public Demo games measure different regimes. Public results
+  also vary by model, prior exposure, number of runs, selection rule, and cost.
+  They must not be combined into one ranking.
+
+evidence_regimes:
+  official_verified:
+    dataset: "55 Semi-Private environments"
+    authority: "ARC Prize Foundation"
+    default_protocol:
+      runs: 1
+      runtime_cost_cap_usd: 10000
+      client_side_tools: false
+      web_search: false
+    notes:
+      - "Frontier-model evaluation, not a specialized research harness."
+      - "The official policy says Public Demo is harder on average than Semi-Private and uses a ±15 percentage-point agreement band for ARC-AGI-3."
+    source_ids:
+      - official_policy
+      - official_technical_report
+
+  kaggle_hidden:
+    dataset: "110 unseen games split between Kaggle Public and Private Leaderboards"
+    authority: "Kaggle competition and ARC Prize"
+    notes:
+      - "Closest available evidence of first-contact system transfer."
+      - "The live leaderboard required authentication and was not reproducibly captured for this snapshot."
+      - "The official Milestone 1 post identifies placements but not scores; The Duck's 1.21% is the team's own report."
+    source_ids:
+      - kaggle_data
+      - official_milestone_1
+      - tufa_duck_score
+
+  public_demo:
+    dataset: "25 open Public Demo games"
+    authority: "Authors or ARC Prize Community Leaderboard unless individually verified"
+    notes:
+      - "Appropriate for development, traces, and controlled ablations."
+      - "Community ARC-AGI-3 scores are normally public-set and self-reported."
+      - "Open exposure permits harness adaptation and possible model contamination."
+      - "Best-of-k and conditional fallback results are not pass@1."
+    source_ids:
+      - official_community_leaderboard
+      - official_policy
+
+score_observations:
+  - id: opus_5_high_verified
+    regime: official_verified
+    system: "Claude Opus 5 High"
+    score_percent: 30.16
+    protocol: "one official Semi-Private run"
+    selection: "pass_at_1"
+    verification: "ARC Prize verified"
+    date: "2026-07-24"
+    source_ids:
+      - official_opus_5
+
+  - id: opus_5_high_public_derived
+    regime: public_demo
+    system: "Claude Opus 5 High"
+    score_percent: 40.676
+    protocol: "arithmetic mean derived from the 25 per-game rows on the official scorecard"
+    selection: "pass_at_1"
+    verification: "derived from official published rows; not the official headline"
+    date: "2026-07-24"
+    caveat: "Rounded in the narrative to approximately 40.68%."
+    source_ids:
+      - official_opus_5
+
+  - id: gpt_56_sol_max_verified
+    regime: official_verified
+    system: "GPT-5.6 Sol Max"
+    score_percent: 7.78
+    protocol: "one official Semi-Private run"
+    selection: "pass_at_1"
+    verification: "ARC Prize verified"
+    date: "2026-07-09"
+    source_ids:
+      - official_gpt_56
+
+  - id: gpt_56_sol_max_public
+    regime: public_demo
+    system: "GPT-5.6 Sol Max"
+    score_percent: 13.33
+    protocol: "official model evaluation on Public Demo"
+    selection: "pass_at_1"
+    verification: "published by ARC Prize"
+    date: "2026-07-09"
+    source_ids:
+      - official_gpt_56
+
+  - id: gpt_56_terra_max_verified
+    regime: official_verified
+    system: "GPT-5.6 Terra Max"
+    score_percent: 0.80
+    protocol: "one official Semi-Private run"
+    selection: "pass_at_1"
+    verification: "ARC Prize verified"
+    date: "2026-07-09"
+    source_ids:
+      - official_gpt_56
+
+  - id: gpt_56_luna_max_verified
+    regime: official_verified
+    system: "GPT-5.6 Luna Max"
+    score_percent: 0.18
+    protocol: "one official Semi-Private run"
+    selection: "pass_at_1"
+    verification: "ARC Prize verified"
+    date: "2026-07-09"
+    source_ids:
+      - official_gpt_56
+
+  - id: duck_milestone_1
+    regime: kaggle_hidden
+    system: "Tufa Labs The Duck"
+    score_percent: 1.21
+    protocol: "Kaggle Milestone 1 submission"
+    selection: "competition submission"
+    verification: "placement confirmed by ARC Prize; score self-reported by Tufa Labs"
+    date: "2026-06-30"
+    source_ids:
+      - official_milestone_1
+      - tufa_duck_score
+
+  - id: schema_claude_pair
+    regime: public_demo
+    system: "Schema with Claude Opus 4.8 and Fable 5 fallback"
+    score_percent: 98.98
+    protocol: >-
+      Run the primary model; rerun games scoring below 80% with the fallback;
+      retain the higher per-game result.
+    selection: "conditional_per_game_best_of_2"
+    verification: "author self-report"
+    caveat: "Not pass@1 and no Semi-Private or Kaggle claim."
+    source_ids:
+      - schema_site
+
+  - id: schema_gpt_56_sol
+    regime: public_demo
+    system: "Schema with GPT-5.6 Sol xhigh and max fallback"
+    score_percent: 95.35
+    protocol: >-
+      Run xhigh first; rerun games scoring below 80% at max effort; retain the
+      higher per-game result.
+    selection: "conditional_per_game_best_of_2"
+    verification: "author self-report"
+    caveat: "Not pass@1 and no Semi-Private or Kaggle claim."
+    source_ids:
+      - schema_site
+
+  - id: executable_world_model_sol_xhigh
+    regime: public_demo
+    system: "Executable World Models fixed-interface verification with GPT-5.6 Sol xhigh"
+    score_percent: 98.97
+    protocol: "one exploratory public run over all games"
+    selection: "pass_at_1_reported"
+    verification: "paper author report"
+    caveat: "Model postdates public games; no held-out evaluation."
+    source_ids:
+      - executable_world_models_ablation
+
+  - id: opine_world
+    regime: public_demo
+    system: "OPINE-World with Claude Opus 4.8"
+    score_percent: 78.4
+    protocol: "one run per game; no per-game training"
+    selection: "pass_at_1_reported"
+    verification: "paper author report"
+    caveat: "No same-model baseline ablation and no run variance."
+    source_ids:
+      - opine_world
+
+  - id: pro_long_pass_at_1
+    regime: public_demo
+    system: "PRO-LONG"
+    score_percent: 76.1
+    protocol: "reported maximum pass@1 result across tested model conditions"
+    selection: "pass_at_1_reported"
+    verification: "paper author report"
+    source_ids:
+      - pro_long_paper
+
+  - id: pro_long_fable_best_at_2
+    regime: public_demo
+    system: "PRO-LONG with Fable 5"
+    score_percent: 97.4
+    protocol: "best result retained from two runs"
+    selection: "best_at_2"
+    verification: "paper author report"
+    caveat: "Must not be compared directly with pass@1."
+    source_ids:
+      - pro_long_paper
+
+  - id: baseline1_community
+    regime: public_demo
+    system: "baseline1"
+    score_percent: 63.7
+    protocol: "ARC Prize Community Leaderboard entry"
+    selection: "author submission"
+    verification: "self-reported according to community leaderboard policy"
+    date: "2026-05-20"
+    source_ids:
+      - official_community_leaderboard
+
+  - id: vision_continual_learning
+    regime: public_demo
+    system: "Vision Continual Learning v1"
+    score_percent: 63.1
+    protocol: "weights carried across and adapted on the 25 public games"
+    selection: "exposed_data_evaluation"
+    verification: "self-reported according to community leaderboard policy"
+    caveat: "Not first-contact generalization; treat as an exposed-data upper bound."
+    date: "2026-05-18"
+    source_ids:
+      - official_community_leaderboard
+      - vision_continual_learning_repo
+
+  - id: tell_community
+    regime: public_demo
+    system: "TELL"
+    score_percent: 43.9
+    protocol: "one conversation per game with persistent MEMORY.md"
+    selection: "author submission"
+    verification: "self-reported according to community leaderboard policy"
+    date: "2026-04-09"
+    source_ids:
+      - official_community_leaderboard
+      - tell_repo
+
+  - id: human_intelligence_harness
+    regime: public_demo
+    system: "Human Intelligence Harness"
+    score_percent: 95.3
+    protocol: "human intelligence/replay encoded in a harness"
+    selection: "not applicable"
+    verification: "ARC Prize community entry"
+    caveat: "Not an AI-agent score."
+    date: "2026-04-14"
+    source_ids:
+      - official_community_leaderboard
+
+systems:
+  schema:
+    category: "single executable object-centric world model"
+    mechanisms:
+      - "Ground pixels into objects, variables, and relations."
+      - "Maintain one editable world_model.py containing state, step, and goal logic."
+      - "Append every real transition to a Timeline."
+      - "Have the LLM write and revise Python."
+      - "Require exact full-history run_backtest before admitting a revision."
+      - "Use BFS over simulated states."
+      - "Queue structured plans with commit_actions."
+      - "Compare every simulated transition with reality and abort the remaining queue on mismatch."
+      - "Use discriminating experiments when candidate rules predict different outcomes."
+      - "Revise the ontology as well as the transition rules when needed."
+    limitations:
+      - "One admitted active program can encourage premature commitment."
+      - "Exact pixels alone do not express partially correct mechanics."
+      - "Published headline scores use conditional fallback selection."
+      - "No hidden-game result has been reported."
+    source_ids:
+      - schema_site
+      - schema_traces
+
+  executable_world_models:
+    category: "coding agent with persistent simulator and verifier"
+    mechanisms:
+      - "Separate world-model engine, state I/O, planner, verifier, and executor."
+      - "Replay recorded attempts and test plans inside the learned model."
+      - "Stop plan execution at a real/simulated mismatch."
+      - "Scheduled refactoring/simplification as an informal description-length pressure."
+    ablation_findings:
+      - "Stronger models and reasoning effort had the most robust effect."
+      - "Textual theory beat flexible executable theory in both GPT-5.5 settings."
+      - "Simplification helped three of four original settings."
+      - "Fixed-interface replay verification ranked first in all four settings but cost more."
+      - "GPT-5.6 Sol saturated the public set, with no held-out evaluation."
+    ablation_scores_percent:
+      columns:
+        - textual
+        - flexible_executable
+        - executable_with_simplification
+        - fixed_interface_replay_verification
+      gpt_5_4_high:
+        - 34.16
+        - 33.54
+        - 30.60
+        - 39.16
+      gpt_5_4_xhigh:
+        - 40.67
+        - 44.72
+        - 53.10
+        - 53.72
+      gpt_5_5_high:
+        - 58.85
+        - 51.16
+        - 58.35
+        - 65.64
+      gpt_5_5_xhigh:
+        - 72.51
+        - 69.70
+        - 73.09
+        - 74.78
+      gpt_5_6_sol_followup:
+        xhigh:
+          textual: 92.34
+          fixed_interface_replay_verification: 98.97
+        max:
+          textual: 95.97
+          fixed_interface_replay_verification: 98.77
+      caveat: "All scores in this table are author-reported Public Demo results."
+    security_findings:
+      - "Unhardened coding-agent setups can leak game identifiers, permit web lookup, or expose a second client."
+      - "Blind evaluation should hide identifiers and source, disable network, and allow only one authoritative environment connection."
+    source_ids:
+      - executable_world_models_paper
+      - executable_world_models_ablation
+      - executable_world_models_repo
+
+  opine_world:
+    category: "object-centric program synthesis with ontology-error probing"
+    mechanisms:
+      - "Acting agent, synthesizer, and critic."
+      - "Object-centric game engine, transition function, goal predicate, and planner."
+      - "Exact replay admission, double execution to reject impurity, and static goal checks."
+      - "Dirichlet effect-signature rows and entropy prioritize uncertain object types and contexts."
+      - "Counterexample-triggered synthesis and per-step plan validation."
+    limitations:
+      - "Assumes deterministic observable-Markov dynamics."
+      - "Heuristic object extraction and temporal pairing."
+      - "Bounded forward search."
+      - "No run variance and no same-model baseline ablation."
+    source_ids:
+      - opine_world
+
+  pro_long:
+    category: "lossless programmatic memory"
+    mechanisms:
+      - "Append observations, actions, and outcomes verbatim to structured log.txt."
+      - "Retrieve with grep and Python rather than a specialized memory service."
+      - "Emit action queues that drain without repeated LLM calls."
+      - "Interrupt queued execution on salient state or score change."
+    design_lesson: >-
+      Keep an immutable evidence ledger alongside compiled semantic memory; a
+      lossy summary must never become the only record of an interaction.
+    source_ids:
+      - pro_long_paper
+      - pro_long_repo
+
+  duck:
+    category: "lightweight local code-capable Kaggle agent"
+    mechanisms:
+      - "Qwen 3.6 27B FP8 running locally."
+      - "Live Python REPL."
+      - "Rendered image, raw ASCII, and region segmentation/zoom."
+      - "Old-context eviction."
+    empirical_note: >-
+      Won Milestone 1; the team says hand-built tools hurt and improvements came
+      from multimodality and the base model.
+    source_ids:
+      - official_milestone_1
+      - tufa_duck_score
+
+  reki:
+    category: "local vision-language JSON policy"
+    mechanisms:
+      - "Gemma-4-31B over labeled recent frames."
+      - "One to four JSON actions."
+      - "Reflection approximately every ten steps."
+      - "Small rare-color button click heuristic."
+      - "Dead-signature cache for ineffective clicks."
+      - "Legal-action constraints and JSON repair."
+    source_ids:
+      - official_milestone_1
+
+  forge:
+    category: "configurable local vision-language JSON policy"
+    mechanisms:
+      - "Gemma-4-31B, reflection memory, action repair, and guards."
+      - "Optional candidate generator, arbiter, and confidence-safe actions."
+    empirical_note: "The best milestone run disabled most optional machinery."
+    source_ids:
+      - official_milestone_1
+
+  tell:
+    category: "minimal single-conversation memory agent"
+    mechanisms:
+      - "Screenshot, bash, and persistent MEMORY.md."
+      - "Observe, hypothesize, test, learn, and reuse loop."
+    limitation: "Lossy theory summaries can compound an incorrect causal interpretation."
+    source_ids:
+      - tell_repo
+
+  graph_explorer:
+    category: "model-free systematic exploration"
+    mechanisms:
+      - "Segment visible states."
+      - "Maintain a directed observed state-transition graph."
+      - "Route toward untested state-action pairs."
+    use_in_suite: "Low-confidence fallback and coverage baseline."
+    source_ids:
+      - graph_explorer_paper
+      - graph_explorer_repo
+
+  vision_continual_learning:
+    category: "multimodal continual learning on public games"
+    mechanisms:
+      - "Images, ASCII, and Python tools."
+      - "Weights carried across games and levels."
+    limitation: "Uses the evaluation games for adaptation; not evidence of first-contact transfer."
+    source_ids:
+      - vision_continual_learning_repo
+
+  agentica:
+    category: "orchestrator with specialized subagents"
+    mechanisms:
+      - "Compressed textual summaries."
+      - "Delegated perception, strategy, and action work."
+    limitation: "Compression can lose exact counterevidence."
+    empirical_note: "Reports an unverified 36.08% on Public Demo for $1,005."
+    source_ids:
+      - arcgentica_blog
+      - arcgentica_repo
+
+  dreamteam:
+    category: "role-specialized multi-agent workspace"
+    mechanisms:
+      - "Separate modeling, planning, hypothesizing, probing, and routing roles."
+      - "Persistent shared artifacts."
+    empirical_note: >-
+      Reports 38.4% on Public Demo averaged over two independent runs and 31%
+      fewer environment actions than its protocol-matched comparator.
+    source_ids:
+      - dreamteam_paper
+
+novelty_hypothesis:
+  statement: >-
+    A risk-aware, actively probed version space of executable programs with
+    revisable object ontologies, layered residual prediction, and latent-state
+    discovery may improve first-contact transfer over a single exact-replay
+    world model.
+  status: "research hypothesis; novelty and benefit not established"
+  differentiation_targets:
+    - "First-class persistent ensemble of replay-consistent executable hypotheses."
+    - "Alternative perception and part/whole ontologies, not only alternative transition rules."
+    - "Expected information gain normalized by action cost, irreversibility, and death risk."
+    - "Layered pixel, object, relation, status, and residual diagnostics with exact final certification."
+    - "Latent-state automaton induction when observable Markov assumptions fail."
+    - "Counterexample-guided abstraction refinement and a planner portfolio."
+    - "Immutable evidence provenance for every compiled rule and macro."
+  prior_art_boundaries:
+    - "Schema already implements the single editable simulator, replay, BFS, queued execution, mismatch abort, and ontology revision."
+    - "Executable World Models already studies persistent Python models, simplification, replay verification, and plan execution."
+    - "OPINE-World already claims object-centric CEGIS and Bayesian ontology-error exploration."
+    - "PRO-LONG already demonstrates lossless programmatic memory and code-search retrieval."
+    - "WorldCoder already established LLM-written programmatic world models constrained by interaction."
+  falsification_tests:
+    - "Single simulator versus executable version space on blind games."
+    - "Fixed ontology versus ontology revision."
+    - "Passive or coverage probing versus information-gain probing."
+    - "Observable state versus latent-state induction."
+    - "Mandatory executable model versus adaptive formalization."
+    - "Exact-only mismatch handling versus layered diagnostics plus exact certification."
+    - "Fixed BFS versus planner portfolio."
+  required_success_evidence: >-
+    Improvement on a blind holdout or Kaggle hidden games, or a material
+    reduction in real actions at matched completion. Reproducing saturated
+    Public Demo scores is not sufficient.
+
+reporting_protocol:
+  headline: "one predeclared pass@1"
+  repeated_runs:
+    report:
+      - "all-run mean"
+      - "standard deviation or confidence interval"
+      - "every trajectory"
+    do_not_select_silently: true
+  best_of_k:
+    permitted_as_secondary_statistic: true
+    required_labels:
+      - "k"
+      - "selection unit: benchmark, game, or level"
+      - "conditional or unconditional rerun"
+      - "model and effort used for each run"
+  metrics:
+    - "benchmark score"
+    - "games completed"
+    - "levels completed"
+    - "real environment actions"
+    - "simulated states"
+    - "deaths and resets"
+    - "LLM calls and tokens"
+    - "runtime and monetary cost"
+    - "model mismatch rate"
+    - "hypothesis entropy"
+    - "recovery latency after mismatch"
+    - "planner selected"
+  hygiene:
+    - "Fresh workspace and model context per game."
+    - "Hide game identifiers and implementation source."
+    - "Disable web and external source lookup."
+    - "Use one authoritative environment connection."
+    - "Separate Public Demo, synthetic blind holdout, Kaggle Public, and Kaggle Private results."
+    - "Label continual-learning and public-game exposure conditions separately."
+
+sources:
+  official_technical_report:
+    title: "ARC-AGI-3: A New Challenge for Frontier Agentic Intelligence"
+    url: "https://arxiv.org/abs/2603.24621"
+    publisher: "ARC Prize authors"
+    type: "technical_report"
+    primary: true
+    claims_used:
+      - "ARC-AGI-3 is interactive rather than static input-output grid transformation."
+      - "There are 135 environments: 25 Public Demo, 55 Semi-Private, and 55 Fully Private."
+
+  official_policy:
+    title: "ARC Prize Verified Testing Policy"
+    url: "https://arcprize.org/policy"
+    publisher: "ARC Prize Foundation"
+    type: "official_policy"
+    primary: true
+    claims_used:
+      - "Verified model evaluations use one run and a $10,000 cap."
+      - "Tools and web search are disabled by default."
+      - "Community ARC-AGI-3 results are normally public and self-reported."
+      - "Public Demo is currently considered harder on average than Semi-Private, with a ±15-point agreement band."
+
+  kaggle_data:
+    title: "ARC Prize 2026 - ARC-AGI-3: Dataset Description"
+    url: "https://www.kaggle.com/competitions/arc-prize-2026-arc-agi-3/data"
+    publisher: "Kaggle and ARC Prize"
+    type: "competition_documentation"
+    primary: true
+    claims_used:
+      - "Competition evaluation uses 110 unseen games, split between Public and Private Leaderboards."
+
+  official_milestone_1:
+    title: "ARC Prize 2026: ARC-AGI-3 Milestone Prize #1"
+    url: "https://arcprize.org/blog/arc-prize-2026-milestone-1"
+    publisher: "ARC Prize Foundation"
+    type: "official_results_post"
+    primary: true
+    published: "2026-07-06"
+    claims_used:
+      - "Milestone placements: The Duck, Reki, forge."
+      - "Mechanism descriptions for all three agents."
+      - "The post does not provide their numeric scores."
+
+  tufa_duck_score:
+    title: "Tufa Labs Milestone 1 solution announcement"
+    url: "https://www.linkedin.com/posts/tufalabs_our-winning-solution-to-the-arc-agi-3-milestone-activity-7478103606093676546-dlQu"
+    publisher: "Tufa Labs"
+    type: "team_self_report"
+    primary: true
+    claims_used:
+      - "The Duck achieved 1.21%."
+
+  official_opus_5:
+    title: "Claude Opus 5 - ARC-AGI Results"
+    url: "https://arcprize.org/results/anthropic-claude-opus-5"
+    publisher: "ARC Prize Foundation"
+    type: "official_scorecard"
+    primary: true
+    published: "2026-07-24"
+    claims_used:
+      - "Claude Opus 5 High scored 30.16% officially."
+      - "The scorecard publishes all 25 Public Demo per-game scores."
+
+  official_gpt_56:
+    title: "GPT-5.6 Series - ARC-AGI Results"
+    url: "https://arcprize.org/results/openai-gpt-5-6"
+    publisher: "ARC Prize Foundation"
+    type: "official_scorecard"
+    primary: true
+    published: "2026-07-09"
+    claims_used:
+      - "Sol Max scored 7.78% Semi-Private and 13.33% Public."
+      - "Terra Max scored 0.80% Semi-Private."
+      - "Luna Max scored 0.18% Semi-Private."
+
+  official_failure_analysis:
+    title: "Analyzing GPT-5.5 and Opus 4.7 with ARC-AGI-3"
+    url: "https://arcprize.org/blog/arc-agi-3-gpt-5-5-opus-4-7-analysis"
+    publisher: "ARC Prize Foundation"
+    type: "official_analysis"
+    primary: true
+    published: "2026-05-01"
+    claims_used:
+      - "True local effect but false global world model."
+      - "Wrong abstraction induced by familiar-game analogies."
+      - "Level completion without causal understanding."
+
+  official_community_leaderboard:
+    title: "ARC-AGI Community Leaderboard"
+    url: "https://arcprize.org/leaderboard/community"
+    publisher: "ARC Prize Foundation"
+    type: "community_index"
+    primary: true
+    claims_used:
+      - "ARC-AGI-3 entries are public-set and self-reported unless noted."
+      - "baseline1 63.7%, Vision Continual Learning 63.1%, TELL 43.9%, Human Intelligence Harness 95.3%."
+
+  schema_site:
+    title: "Schema: a harness for LLMs on ARC-AGI-3"
+    url: "https://schema-harness.github.io/"
+    publisher: "Schema authors"
+    type: "project_report"
+    primary: true
+    published: "2026-07-15"
+    claims_used:
+      - "Exact mechanisms of world_model.py, Timeline, run_backtest, BFS, commit_actions, and mismatch cancellation."
+      - "98.98% and 95.35% Public Demo results and their conditional fallback protocol."
+      - "Exact models in 14 of 25 games and ontology revision examples."
+
+  schema_traces:
+    title: "ARC-AGI-3 Schema Traces"
+    url: "https://huggingface.co/datasets/schema-harness/arc-agi-3-schema-traces"
+    publisher: "Schema authors"
+    type: "trajectory_dataset"
+    primary: true
+    claims_used:
+      - "Fifty public trajectories: 25 GPT-5.6 Sol and 25 Claude-pair runs."
+
+  executable_world_models_paper:
+    title: "Executable World Models for ARC-AGI-3 in the Era of Coding Agents"
+    url: "https://arxiv.org/abs/2605.05138"
+    publisher: "Sergey Rodionov"
+    type: "research_paper"
+    primary: true
+    published: "2026-05-06"
+    claims_used:
+      - "Persistent Python world model, replay verifier, planner, and mismatch-aware executor."
+      - "Security risks in unhardened coding-agent evaluation."
+
+  executable_world_models_ablation:
+    title: "Do Coding Agents Need Executable World Models, Simplification, and Verification to Solve ARC-AGI-3?"
+    url: "https://arxiv.org/abs/2607.15439"
+    publisher: "Sergey Rodionov"
+    type: "research_paper"
+    primary: true
+    published: "2026-07-16"
+    claims_used:
+      - "Four-way component ablation."
+      - "Executable persistence is not universally helpful."
+      - "Verification ranks first but costs more."
+      - "GPT-5.6 Sol reaches about 99% on Public Demo with no held-out result."
+
+  executable_world_models_repo:
+    title: "arc-3-agents-baseline1"
+    url: "https://github.com/astroseger/arc-3-agents-baseline1"
+    publisher: "Sergey Rodionov"
+    type: "source_code"
+    primary: true
+
+  opine_world:
+    title: "OPINE-World: Programmatic World Modeling with Ontology-error-Prioritized Interactive Exploration for ARC-AGI-3"
+    url: "https://arxiv.org/abs/2607.01531"
+    publisher: "David Courtis, Wenhao Li, and Scott Sanner"
+    type: "research_paper"
+    primary: true
+    published: "2026-07-01"
+    claims_used:
+      - "Object-centric program synthesis, replay verification, model-based planning, and Bayesian ontology error."
+      - "20 of 25 games and 78.4% Public Demo score."
+
+  pro_long_paper:
+    title: "PRO-LONG: Programmatic Memory Enables Long-Horizon Reasoning"
+    url: "https://arxiv.org/abs/2607.20064"
+    publisher: "PRO-LONG authors"
+    type: "research_paper"
+    primary: true
+    published: "2026-07-22"
+    claims_used:
+      - "Verbatim append-only log and programmatic retrieval."
+      - "76.1% pass@1 and 97.4% best@2 Public Demo results."
+
+  pro_long_repo:
+    title: "PRO-LONG source repository"
+    url: "https://github.com/alexisfox7/PRO-LONG"
+    publisher: "PRO-LONG authors"
+    type: "source_code"
+    primary: true
+
+  tell_repo:
+    title: "TELL source repository"
+    url: "https://github.com/studio-dots-ai/TELL"
+    publisher: "TELL authors"
+    type: "source_code"
+    primary: true
+
+  graph_explorer_paper:
+    title: "Graph-Based Exploration for ARC-AGI-3 Interactive Reasoning Tasks"
+    url: "https://arxiv.org/abs/2512.24156"
+    publisher: "Graph explorer authors"
+    type: "research_paper"
+    primary: true
+    claims_used:
+      - "Training-free state-transition graph exploration toward untested state-action pairs."
+
+  graph_explorer_repo:
+    title: "ARC-AGI-3 Just Explore"
+    url: "https://github.com/dolphin-in-a-coma/arc-agi-3-just-explore"
+    publisher: "Graph explorer authors"
+    type: "source_code"
+    primary: true
+
+  stochastic_goose_repo:
+    title: "StochasticGoose ARC-AGI-3 solution"
+    url: "https://github.com/DriesSmit/ARC3-solution"
+    publisher: "Dries Smit"
+    type: "source_code"
+    primary: true
+
+  vision_continual_learning_repo:
+    title: "ARC-AGI-3 Vision Continual Learning v1"
+    url: "https://github.com/vansh-one/arc-agi-3_Vision-CLv1"
+    publisher: "Vansh"
+    type: "source_code"
+    primary: true
+
+  arcgentica_blog:
+    title: "From 0% to 36% on Day 1 of ARC-AGI-3"
+    url: "https://www.symbolica.ai/blog/arc-agi-3"
+    publisher: "Symbolica"
+    type: "team_report"
+    primary: true
+    published: "2026-03-25"
+    claims_used:
+      - "Agentica reports an unverified 36.08% Public Demo score for $1,005."
+
+  arcgentica_repo:
+    title: "ARC-AGI-3 Agents"
+    url: "https://github.com/symbolica-ai/ARC-AGI-3-Agents"
+    publisher: "Symbolica"
+    type: "source_code"
+    primary: true
+
+  dreamteam_paper:
+    title: "Workspace Optimization: How to Train Your Agent"
+    url: "https://arxiv.org/abs/2605.09650"
+    publisher: "DreamTeam authors"
+    type: "research_paper"
+    primary: true
+    published: "2026-05-10"
+    claims_used:
+      - "DreamTeam assigns modeling, planning, hypothesizing, probing, strategy, and failure-routing roles."
+      - "It reports 38.4% averaged over two public runs and 31% fewer environment actions."
+
+  worldcoder_paper:
+    title: "WorldCoder, a Model-Based LLM Agent: Building World Models by Writing Code and Interacting with the Environment"
+    url: "https://arxiv.org/abs/2402.12275"
+    publisher: "Hao Tang, Darren Key, and Kevin Ellis"
+    type: "research_paper"
+    primary: true
+
+  theory_based_rl:
+    title: "Human-level learning of complex novel tasks as theory-based modelling, exploration and planning"
+    url: "https://doi.org/10.1098/rsta.2024.0529"
+    publisher: "Philosophical Transactions of the Royal Society A"
+    type: "research_paper"
+    primary: true
+    published: "2026-05-14"
+
+research_gaps:
+  - "No controlled same-model comparison of a single admitted simulator against a persistent executable version space on hidden games was found."
+  - "No public ARC-AGI-3 system found here jointly maintains competing perception ontologies, transition programs, and latent-state automata."
+  - "Public near-saturation has not established transfer to the Kaggle hidden distribution."
+  - "Most public reports provide little or no run variance."
+  - "Action selection rarely optimizes information gain, task progress, action efficiency, reversibility, and death risk in one calibrated objective."

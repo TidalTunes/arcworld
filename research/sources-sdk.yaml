@@ -1,0 +1,288 @@
+schema_version: 1
+snapshot_date: "2026-07-26"
+scope: "Official ARC-AGI-3 SDK, engine protocol, public game catalog, and local tooling"
+evidence_policy:
+  primary_sources_only_for_protocol: true
+  notes:
+    - "Repository behavior was checked at the pinned revisions below, not inferred only from prose documentation."
+    - "The hosted catalog was queried on the snapshot date and may change."
+    - "Kaggle competition rules and leaderboard evidence are tracked separately."
+
+verified_artifacts:
+  arc_agi:
+    version: "0.9.9"
+    revision: "f12822c4d550121c35a275008d964afbbed47d2f"
+    revision_date: "2026-06-10"
+    python: ">=3.12"
+    license: "MIT"
+  arcengine:
+    version: "0.9.3"
+    revision: "b495c6acaf253c9681cd7b75c4299d352e9ce6f8"
+    revision_date: "2026-01-28"
+    python: ">=3.12"
+    license: "MIT"
+  arc_agi_3_agents:
+    revision: "10213de83f01df0ef4f0149ee9f8408dcc3772fb"
+    revision_date: "2026-05-28"
+    license: "MIT"
+  kaggle_starter:
+    revision: "eeb1535404f321d280a8f9194bbc1d7aca5f05fc"
+    revision_date: "2026-05-27"
+    license: null
+    license_note: "No LICENSE file was present at the inspected revision."
+  official_benchmarking:
+    version: "0.1.0"
+    revision: "dc814bedbc0d694b25cc5dd9e546a6a249aef24e"
+    revision_date: "2026-06-29"
+    license: "MIT"
+
+sources:
+  - id: "docs-index"
+    title: "ARC Prize documentation index for language models"
+    url: "https://docs.arcprize.org/llms.txt"
+    publisher: "ARC Prize Foundation"
+    kind: "official-doc-index"
+    accessed: "2026-07-26"
+    supports:
+      - "Canonical discovery of the ARC-AGI-3 documentation pages"
+
+  - id: "docs-games"
+    title: "Games"
+    url: "https://docs.arcprize.org/games"
+    publisher: "ARC Prize Foundation"
+    kind: "official-documentation"
+    accessed: "2026-07-26"
+    supports:
+      - "64 by 64 rendered grid"
+      - "Palette-index observation convention"
+      - "Game and level organization"
+
+  - id: "docs-actions"
+    title: "Actions"
+    url: "https://docs.arcprize.org/actions"
+    publisher: "ARC Prize Foundation"
+    kind: "official-documentation"
+    accessed: "2026-07-26"
+    supports:
+      - "RESET and ACTION1 through ACTION7 identifiers"
+      - "ACTION6 coordinate convention"
+      - "Keyboard, click, and undo UI conventions"
+
+  - id: "docs-recordings"
+    title: "Recordings"
+    url: "https://docs.arcprize.org/recordings"
+    publisher: "ARC Prize Foundation"
+    kind: "official-documentation"
+    accessed: "2026-07-26"
+    supports:
+      - "Recording and replay concepts"
+      - "Hosted replay URLs"
+    caveat: "Examples contain fields that are stale relative to SDK 0.9.9."
+
+  - id: "docs-local-online"
+    title: "Local vs Online"
+    url: "https://docs.arcprize.org/local-vs-online"
+    publisher: "ARC Prize Foundation"
+    kind: "official-documentation"
+    accessed: "2026-07-26"
+    supports:
+      - "Local and hosted execution distinction"
+    caveat: "The claim that the Local Toolkit has no recordings is stale for SDK 0.9.9."
+
+  - id: "docs-competition-mode"
+    title: "Competition Mode"
+    url: "https://docs.arcprize.org/toolkit/competition_mode"
+    publisher: "ARC Prize Foundation"
+    kind: "official-documentation"
+    accessed: "2026-07-26"
+    supports:
+      - "Competition-mode session constraints"
+      - "Reset restrictions and scorecard behavior"
+
+  - id: "docs-arc-prize-2026"
+    title: "ARC Prize 2026"
+    url: "https://docs.arcprize.org/arc-prize-2026"
+    publisher: "ARC Prize Foundation"
+    kind: "official-documentation"
+    accessed: "2026-07-26"
+    supports:
+      - "Official 2026 challenge context"
+
+  - id: "docs-benchmarking-agent"
+    title: "Benchmarking Agent"
+    url: "https://docs.arcprize.org/benchmarking-agent"
+    publisher: "ARC Prize Foundation"
+    kind: "official-documentation"
+    accessed: "2026-07-26"
+    supports:
+      - "Official baseline intent and model-evaluation interface"
+    caveat: "Documented package and command names lag the current benchmarking repository."
+
+  - id: "docs-methodology"
+    title: "Methodology"
+    url: "https://docs.arcprize.org/methodology"
+    publisher: "ARC Prize Foundation"
+    kind: "official-documentation"
+    accessed: "2026-07-26"
+    supports:
+      - "Official benchmark methodology"
+
+  - id: "openapi-v1"
+    title: "ARC-AGI-3 API v1 OpenAPI specification"
+    url: "https://docs.arcprize.org/arc3v1.yaml"
+    publisher: "ARC Prize Foundation"
+    kind: "official-openapi"
+    accessed: "2026-07-26"
+    supports:
+      - "Scorecard and command request schemas"
+      - "Command endpoint paths"
+      - "Rate-limit response"
+    caveat: "Several live SDK fields and routes are absent or inconsistent; see sdk_and_games.md."
+
+  - id: "arc-agi-repo"
+    title: "ARC-AGI Python SDK"
+    url: "https://github.com/arcprize/ARC-AGI"
+    publisher: "ARC Prize Foundation"
+    kind: "official-source"
+    accessed: "2026-07-26"
+    revision: "f12822c4d550121c35a275008d964afbbed47d2f"
+    license: "MIT"
+    supports:
+      - "Arcade and EnvironmentWrapper signatures"
+      - "Operation-mode precedence"
+      - "Local cache, REST wrapper, rendering, and JSONL recording behavior"
+
+  - id: "arc-agi-pypi"
+    title: "arc-agi on PyPI"
+    url: "https://pypi.org/project/arc-agi/"
+    publisher: "ARC Prize Foundation"
+    kind: "official-package-registry"
+    accessed: "2026-07-26"
+    version: "0.9.9"
+    supports:
+      - "Published package version and Python dependency metadata"
+
+  - id: "arcengine-repo"
+    title: "ARCEngine"
+    url: "https://github.com/arcprize/ARCEngine"
+    publisher: "ARC Prize Foundation"
+    kind: "official-source"
+    accessed: "2026-07-26"
+    revision: "b495c6acaf253c9681cd7b75c4299d352e9ce6f8"
+    license: "MIT"
+    supports:
+      - "GameAction, FrameData, and GameState definitions"
+      - "Frame scaling and action animation loop"
+      - "Full reset, level reset, scoring, and level-transition semantics"
+
+  - id: "arcengine-pypi"
+    title: "arcengine on PyPI"
+    url: "https://pypi.org/project/arcengine/"
+    publisher: "ARC Prize Foundation"
+    kind: "official-package-registry"
+    accessed: "2026-07-26"
+    version: "0.9.3"
+    supports:
+      - "Published engine version and Python dependency metadata"
+
+  - id: "hosted-games-api"
+    title: "Hosted public games endpoint"
+    url: "https://arcprize.org/api/games"
+    publisher: "ARC Prize Foundation"
+    kind: "official-live-api"
+    accessed: "2026-07-26"
+    supports:
+      - "The 25 versioned public game IDs"
+      - "Titles, tags, and per-level human baseline actions"
+    volatility: "live"
+
+  - id: "hosted-game-source-api"
+    title: "Hosted game metadata and source endpoints"
+    url: "https://arcprize.org/api/games/{game_id}"
+    publisher: "ARC Prize Foundation"
+    kind: "official-live-api-pattern"
+    accessed: "2026-07-26"
+    related_url: "https://arcprize.org/api/games/{full_game_id}/source"
+    supports:
+      - "Exact downloaded metadata and MIT-licensed public game source"
+      - "Source-instantiated level counts and runtime action spaces"
+    caveat: "These routes are used by SDK 0.9.9 but omitted from the public OpenAPI file."
+
+  - id: "official-agents-repo"
+    title: "ARC-AGI-3 Agents"
+    url: "https://github.com/arcprize/ARC-AGI-3-Agents"
+    publisher: "ARC Prize Foundation"
+    kind: "official-source"
+    accessed: "2026-07-26"
+    revision: "10213de83f01df0ef4f0149ee9f8408dcc3772fb"
+    license: "MIT"
+    supports:
+      - "Agent and swarm interfaces"
+      - "Educational random, LLM, graph, and multimodal templates"
+
+  - id: "official-benchmarking-repo"
+    title: "ARC-AGI-3 Benchmarking"
+    url: "https://github.com/arcprize/arc-agi-3-benchmarking"
+    publisher: "ARC Prize Foundation"
+    kind: "official-source"
+    accessed: "2026-07-26"
+    revision: "dc814bedbc0d694b25cc5dd9e546a6a249aef24e"
+    license: "MIT"
+    supports:
+      - "Current official text-grid benchmarking agent"
+      - "Per-level action budgets, action parser, provider configurations, and rich records"
+      - "Official Dockerfile"
+
+  - id: "kaggle-starter-repo"
+    title: "ARC-AGI-3 Kaggle Starter"
+    url: "https://github.com/arcprize/ARC-AGI-3-Kaggle-Starter"
+    publisher: "ARC Prize Foundation"
+    kind: "official-source"
+    accessed: "2026-07-26"
+    revision: "eeb1535404f321d280a8f9194bbc1d7aca5f05fc"
+    license: null
+    supports:
+      - "Notebook construction, local gateway, verification, and submission workflow"
+    caveat: "No LICENSE file was present at the inspected revision."
+
+  - id: "kaggle-competition"
+    title: "ARC Prize 2026: ARC-AGI-3"
+    url: "https://www.kaggle.com/competitions/arc-prize-2026-arc-agi-3"
+    publisher: "Kaggle and ARC Prize Foundation"
+    kind: "official-competition-page"
+    accessed: "2026-07-26"
+    dataset_license: "Apache-2.0"
+    supports:
+      - "Competition entry point and dataset license"
+
+  - id: "official-sample-notebook"
+    title: "ARC3 Sample Submission: Stochastic Goose"
+    url: "https://www.kaggle.com/code/inversion/arc3-sample-submission-stochastic-goose"
+    publisher: "ARC Prize Foundation on Kaggle"
+    kind: "official-sample"
+    accessed: "2026-07-26"
+    source_download_url: "https://www.kaggle.com/api/v1/kernels/pull/inversion/arc3-sample-submission-stochastic-goose"
+    supports:
+      - "Official Kaggle sample submission architecture and runtime workflow"
+
+  - id: "stochastic-goose-origin"
+    title: "ARC3-solution"
+    url: "https://github.com/DriesSmit/ARC3-solution"
+    publisher: "Dries Smit"
+    kind: "sample-origin-source"
+    accessed: "2026-07-26"
+    revision: "a6e77bbf90b5438d37f2d4d35b1c4825d769844d"
+    license: null
+    supports:
+      - "Origin of the Stochastic Goose novelty-learning sample"
+    caveat: "No LICENSE file was present; treat as research evidence, not reusable code."
+
+catalog_verification:
+  hosted_descriptors: "Queried hosted-games-api on 2026-07-26."
+  sources: "Downloaded through the official SDK metadata/source routes into a temporary directory."
+  runtime_check: "Instantiated every downloaded game locally and read its levels and action space."
+  result:
+    games: 25
+    levels: 183
+    constructors_accepting_seed: 0
+  repository_effect: "No downloaded game files or external repositories were copied into this project."

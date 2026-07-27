@@ -1,0 +1,779 @@
+schema_version: 1
+
+snapshot:
+  research_date: "2026-07-26"
+  live_kaggle_captured_at_utc: "2026-07-27T06:22:44Z"
+  live_kaggle_captured_at_local: "2026-07-26T23:22:44-07:00"
+  local_timezone: "America/Los_Angeles"
+  competition_slug: "arc-prize-2026-arc-agi-3"
+  competition_id: 133468
+  toolkit_version: "0.9.9"
+  toolkit_commit: "f12822c4d550121c35a275008d964afbbed47d2f"
+  warning: >-
+    Competition pages, metadata, participation totals, leaderboard scores, and
+    operational rules can change. Preserve this capture and make a new dated
+    snapshot rather than overwriting it.
+
+scope: >-
+  Official benchmark mechanics, dataset taxonomy, Kaggle execution rules,
+  timeline, prizes, scoring behavior, and a dated public-leaderboard capture.
+
+binding_precedence:
+  - rank: 1
+    source_class: "Live Kaggle legal rules and competition metadata"
+    applies_to:
+      - "eligibility"
+      - "submission limits"
+      - "deadlines"
+      - "compute"
+      - "prizes"
+  - rank: 2
+    source_class: "Pinned scoring server/toolkit source"
+    applies_to:
+      - "executed metric behavior"
+      - "action bookkeeping"
+  - rank: 3
+    source_class: "Current ARC-AGI-3 documentation"
+    applies_to:
+      - "environment contract"
+      - "methodology"
+  - rank: 4
+    source_class: "Kaggle overview prose"
+    applies_to:
+      - "descriptive competition guidance"
+  - rank: 5
+    source_class: "Starter README and general ARC Prize track pages"
+    applies_to:
+      - "examples and non-binding guidance"
+
+dataset_taxonomy:
+  total_games: 135
+  public_demo:
+    game_count: 25
+    id_kind: "base ID; experiments should pin the full versioned catalog ID"
+    visibility: "downloadable and playable"
+    leaderboard_role: "none"
+    intended_use:
+      - "development"
+      - "instrumentation"
+      - "controlled ablation"
+      - "public demonstration"
+    anonymous_api_game_count: 3
+    remaining_access: "free ARC API key or local public environment files"
+    game_ids:
+      - "AR25"
+      - "FT09"
+      - "LP85"
+      - "R11L"
+      - "S5I5"
+      - "VC33"
+      - "SB26"
+      - "RE86"
+      - "SP80"
+      - "CN04"
+      - "TR87"
+      - "DC22"
+      - "M0R0"
+      - "WA30"
+      - "KA59"
+      - "SU15"
+      - "SK48"
+      - "TN36"
+      - "LS20"
+      - "TU93"
+      - "LF52"
+      - "CD82"
+      - "BP35"
+      - "G50T"
+      - "SC25"
+    source_ids:
+      - "official_technical_report"
+      - "official_game_catalog_api"
+      - "official_available_games"
+
+  kaggle_public_leaderboard:
+    game_count: 55
+    visibility: "hidden; only aggregate scores are public during the competition"
+    foundation_taxonomy_label: "Semi-Private"
+    role: "live Public Leaderboard and milestone ranking"
+    source_ids:
+      - "kaggle_data"
+      - "official_technical_report"
+
+  kaggle_private_leaderboard:
+    game_count: 55
+    visibility: "hidden and score withheld until final evaluation/verification"
+    foundation_taxonomy_label: "Fully Private"
+    role: "binding final winner ranking"
+    source_ids:
+      - "kaggle_data"
+      - "kaggle_rules"
+      - "official_technical_report"
+
+  comparability_warning: >-
+    The 25 Public Demo games, the 55 hidden Kaggle public-LB games, and the 55
+    private-LB games are separate score regimes. A Foundation verified-model
+    score can also use a different harness and budget from a Kaggle submission.
+
+environment_contract:
+  frame:
+    maximum_width: 64
+    maximum_height: 64
+    cell_minimum: 0
+    cell_maximum: 15
+    origin: "top-left"
+    response_can_contain_animation_frames: true
+  states:
+    - "NOT_FINISHED"
+    - "WIN"
+    - "GAME_OVER"
+  actions:
+    RESET:
+      id: 0
+      semantics: "start/reset; restricted to level reset in competition mode"
+    ACTION1:
+      id: 1
+      semantics: "up"
+    ACTION2:
+      id: 2
+      semantics: "down"
+    ACTION3:
+      id: 3
+      semantics: "left"
+    ACTION4:
+      id: 4
+      semantics: "right"
+    ACTION5:
+      id: 5
+      semantics: "game-specific interaction"
+    ACTION6:
+      id: 6
+      semantics: "coordinate interaction"
+      x_range: [0, 63]
+      y_range: [0, 63]
+    ACTION7:
+      id: 7
+      semantics: "undo where supported"
+  game_over_legal_action:
+    - "RESET"
+  source_ids:
+    - "official_actions"
+    - "official_full_play"
+    - "official_technical_report"
+
+competition_mode:
+  mandatory_on_kaggle: true
+  api_only: true
+  scores_all_available_environments: true
+  unplayed_environment_score: 0
+  game_reset_allowed: false
+  attempted_game_reset_becomes: "level reset"
+  make_calls_per_environment: 1
+  scorecards_per_run: 1
+  in_flight_get_scorecard_allowed: false
+  public_api_base: "https://three.arcprize.org"
+  kaggle_gateway_base: "http://gateway:8001"
+  direct_api_flow:
+    - "GET /api/games"
+    - "POST /api/scorecard/open"
+    - "POST /api/cmd/RESET"
+    - "POST /api/cmd/ACTION1..ACTION7"
+    - "POST /api/scorecard/close"
+  source_ids:
+    - "official_competition_mode"
+    - "official_full_play"
+    - "official_kaggle_starter_docs"
+
+scoring_snapshot:
+  name: "Relative Human Action Efficiency"
+  acronym: "RHAE"
+  units_in_local_reference: "normalized 0..1"
+  units_in_upstream_source: "percentage 0..100"
+  level_formula: "min(1.15, (human_baseline_actions / ai_actions) ** 2)"
+  incomplete_level_score: 0
+  zero_action_completed_level_score: 0
+  level_score_cap: 1.15
+  level_weight: "1-indexed level index"
+  game_weighted_efficiency: "sum(level_index * level_score) / sum(level_index)"
+  game_completion_cap: >-
+    sum(level_index where level_score > 0) / sum(all level indices)
+  game_score: "min(game_weighted_efficiency, game_completion_cap)"
+  benchmark_score: "arithmetic mean of all game scores"
+  maximum_game_score: 1
+  source_ids:
+    - "official_scoring_methodology"
+    - "toolkit_scoring_v099"
+
+action_accounting_snapshot:
+  accepted_action_1_through_7_increments_actions: true
+  reset_during_active_play_increments_actions: true
+  reset_during_active_play_increments_resets: true
+  initial_new_play_action_count: 0
+  local_reasoning_or_simulator_steps_count: false
+  universal_kaggle_action_limit_published: false
+  starter_default_max_actions:
+    value: 80
+    scope: "editable anti-loop guard, not a competition rule"
+  foundation_model_evaluation_budget:
+    value: "ceil(5 * human_baseline_actions) per level"
+    scope: "verified frontier-model evaluation, not a Kaggle competition limit"
+  source_ids:
+    - "official_scoring_methodology"
+    - "toolkit_scoring_v099"
+    - "official_kaggle_starter_repo"
+    - "official_benchmarking_repo"
+    - "official_technical_report"
+
+live_kaggle_snapshot:
+  captured_at_utc: "2026-07-27T06:22:44Z"
+  acquisition:
+    competition_endpoint: >-
+      https://www.kaggle.com/api/i/competitions.CompetitionService/GetCompetition
+    competition_request:
+      competitionName: "arc-prize-2026-arc-agi-3"
+    leaderboard_endpoint: >-
+      https://www.kaggle.com/api/i/competitions.LeaderboardService/GetLeaderboard
+    leaderboard_request:
+      competitionId: 133468
+    notes:
+      - "Captured from Kaggle's first-party internal API."
+      - "Anonymous Kaggle session and XSRF handling were required."
+  participation:
+    total_teams: 1931
+    total_competitors: 2068
+    total_submissions: 17838
+    total_joined_users: 10386
+    warning: "Kaggle metadata categories overlap and must not be added together."
+  leaderboard_settings:
+    leaderboard_percentage: 50
+    score_truncation_decimal_places: 2
+    final_leaderboard_withheld_until_verified: true
+  top_public_leaderboard:
+    split: "55 hidden public-LB games"
+    score_units: "percent"
+    entries:
+      - rank: 1
+        team_or_user: "YUTO KOJIMA"
+        score: 1.86
+      - rank: 2
+        team_or_user: "Tecnod8.AI"
+        score: 1.61
+      - rank: 3
+        team_or_user: "DhanaLakshmiMalla"
+        score: 1.60
+      - rank: 4
+        team_or_user: "ippeiogawa"
+        score: 1.58
+      - rank: 5
+        team_or_user: "Yuchen20"
+        score: 1.58
+  submission_settings:
+    only_allow_kernel_submissions: true
+    required_submission_filename: "submission.parquet"
+    submission_size_limit_mb: 20480
+    max_cpu_runtime_minutes: 540
+    max_gpu_runtime_minutes: 540
+    max_daily_submissions: 1
+    num_scored_submissions: 2
+    max_team_size: 8
+    identity_verification_required: true
+  competition_metadata:
+    reward_usd: 850000
+    date_enabled_utc: "2026-03-25T17:38:23.913Z"
+    team_merger_deadline_utc: "2026-10-26T23:59:00Z"
+    prohibit_new_entrants_deadline_utc: "2026-10-26T11:59:00Z"
+    kernels_publishing_disabled_deadline_utc: "2026-10-26T23:59:00Z"
+    final_deadline_utc: "2026-11-02T23:59:00Z"
+  source_ids:
+    - "kaggle_live_competition_api"
+    - "kaggle_live_leaderboard_api"
+
+timeline_snapshot:
+  captured_on: "2026-07-26"
+  canonical_timezone: "UTC"
+  events:
+    - event: "competition enabled"
+      at_utc: "2026-03-25T17:38:23.913Z"
+    - event: "milestone 1 cutoff"
+      at_utc: "2026-06-30T23:59:00Z"
+    - event: "milestone 2 cutoff"
+      at_utc: "2026-09-30T23:59:00Z"
+    - event: "new entrant cutoff"
+      at_utc: "2026-10-26T11:59:00Z"
+      caveat: "Visible Timeline says 23:59 UTC; project uses earlier backend value."
+    - event: "team merger cutoff"
+      at_utc: "2026-10-26T23:59:00Z"
+    - event: "kernel publishing disabled"
+      at_utc: "2026-10-26T23:59:00Z"
+    - event: "final submission deadline"
+      at_utc: "2026-11-02T23:59:00Z"
+    - event: "winner announcement"
+      date: "2026-12-04"
+      caveat: "No time published."
+  separate_research_track:
+    paper_deadline: "2026-11-08"
+    warning: "Not an extension of the Kaggle deadline."
+  source_ids:
+    - "kaggle_live_competition_api"
+    - "kaggle_timeline"
+    - "arc_2026_overview"
+
+prize_snapshot:
+  captured_on: "2026-07-26"
+  total_usd: 850000
+  final_private_leaderboard:
+    pool_usd: 75000
+    places_usd: [40000, 15000, 10000, 5000, 5000]
+  milestone_1:
+    pool_usd: 37500
+    places_usd: [25000, 7500, 5000]
+  milestone_2:
+    pool_usd: 37500
+    places_usd: [25000, 7500, 5000]
+  perfect_score_bonus:
+    pool_usd: 700000
+    conditional: true
+    qualifying_places_usd: [350000, 175000, 70000, 70000, 35000]
+  winner_obligations:
+    - "full training and inference code"
+    - "reproduction documentation"
+    - "technical interview and verification cooperation"
+    - "open-source system/model/weights satisfying binding terms"
+  source_ids:
+    - "kaggle_rules"
+    - "kaggle_prizes"
+    - "kaggle_live_competition_api"
+
+official_inconsistencies:
+  - id: "scoring_level_cap"
+    kind: "direct conflict"
+    claims:
+      - source_ids: ["official_scoring_methodology", "toolkit_scoring_v099"]
+        claim: "Square H/A and cap the resulting level score at 1.15."
+      - source_ids: ["kaggle_data"]
+        claim: "Use min(H/A, 1)^2, which caps a level at 1.0."
+    resolution: "Use pinned v0.9.9 execution behavior: cap after squaring at 1.15."
+
+  - id: "daily_submission_limit"
+    kind: "direct conflict"
+    claims:
+      - source_ids: ["kaggle_rules", "kaggle_live_competition_api"]
+        claim: "One submission per day."
+      - source_ids: ["official_kaggle_starter_repo"]
+        claim: "Five submissions per day."
+    resolution: "Plan for the binding/live one-per-day limit."
+
+  - id: "new_entrant_cutoff"
+    kind: "direct conflict"
+    claims:
+      - source_ids: ["kaggle_live_competition_api"]
+        claim: "2026-10-26 11:59 UTC."
+      - source_ids: ["kaggle_timeline"]
+        claim: "2026-10-26 23:59 UTC."
+    resolution: "Use the earlier 11:59 UTC cutoff."
+
+  - id: "milestone_place_distribution"
+    kind: "direct conflict"
+    claims:
+      - source_ids: ["kaggle_rules", "kaggle_prizes"]
+        claim: "$25,000 / $7,500 / $5,000 for each milestone."
+      - source_ids: ["arc_agi_3_track"]
+        claim: "$25,000 / $10,000 / $2,500 for each milestone."
+    resolution: "Use the Kaggle distribution for the Kaggle competition."
+
+  - id: "perfect_score_bonus_distribution"
+    kind: "direct conflict"
+    claims:
+      - source_ids: ["kaggle_rules", "kaggle_prizes"]
+        claim: >-
+          Conditional $700,000 pool split $350,000 / $175,000 / $70,000 /
+          $70,000 / $35,000 among up to five qualifying 100% solutions.
+      - source_ids: ["arc_agi_3_track"]
+        claim: >-
+          The first eligible 100% solution receives the $700,000 pool, with
+          rollover language.
+    resolution: "Use the live Kaggle rules."
+
+  - id: "milestone_guarantee_language"
+    kind: "qualification mismatch"
+    claims:
+      - source_ids: ["arc_agi_3_track"]
+        claim: "Milestone prizes are described as guaranteed."
+      - source_ids: ["kaggle_rules", "kaggle_live_competition_api"]
+        claim: "Payment remains subject to eligibility, verification, and binding terms."
+    resolution: "Treat every payment as conditional on the Kaggle rules."
+
+  - id: "winner_open_source_license"
+    kind: "overlapping requirements"
+    claims:
+      - source_ids: ["kaggle_rules"]
+        claim: >-
+          CC BY 4.0 is named for the winning submission, with Open Source AI
+          requirements for the system/model/weights.
+      - source_ids: ["arc_2026_overview"]
+        claim: >-
+          Submitter-authored code and methods should use CC0 or MIT-0; third-party
+          dependencies must be shareable open source.
+    resolution: >-
+      License original code under MIT-0 or CC0 and also satisfy every Kaggle
+      model, weight, artifact, and publication requirement.
+
+  - id: "kaggle_compute_limit"
+    kind: "stale official prose"
+    claims:
+      - source_ids: ["arc_agi_3_track"]
+        claim: "Kaggle hardware limits will be announced."
+      - source_ids: ["kaggle_live_competition_api", "kaggle_code_requirements"]
+        claim: "CPU and GPU notebook runtimes are each limited to 540 minutes."
+    resolution: "Engineer for the live nine-hour limit."
+
+  - id: "action_budget_numbers"
+    kind: "scope mismatch"
+    claims:
+      - source_ids: ["official_kaggle_starter_repo"]
+        claim: "Starter agent defaults to MAX_ACTIONS=80."
+      - source_ids: ["official_benchmarking_repo", "official_technical_report"]
+        claim: "Foundation frontier-model evaluation uses ceil(5H) per level."
+      - source_ids: ["kaggle_rules", "official_full_play"]
+        claim: "No universal Kaggle action limit is published; GAME_OVER can be game-specific."
+    resolution: >-
+      Treat 80 and 5H as harness policies, not competition rules. Track accepted
+      actions until the environment terminates or the agent's own risk guard stops.
+
+  - id: "public_demo_score_reporting"
+    kind: "policy drift"
+    claims:
+      - source_ids: ["official_technical_report"]
+        claim: "The official model leaderboard would not report Public Demo results."
+      - source_ids: ["official_opus_5_result"]
+        claim: "A later official model result page publishes Public Demo rows/results."
+    resolution: "Label the split and date for every result; do not assume the older policy persists."
+
+  - id: "public_terminology"
+    kind: "terminology trap"
+    claims:
+      - source_ids: ["official_available_games"]
+        claim: "Public Demo refers to 25 downloadable games."
+      - source_ids: ["kaggle_data"]
+        claim: "Public Leaderboard refers to scores from 55 hidden games."
+    resolution: "Always write 25 Public Demo, 55 hidden public-LB, or 55 private-LB."
+
+  - id: "november_deadlines"
+    kind: "separate scopes"
+    claims:
+      - source_ids: ["kaggle_timeline", "kaggle_live_competition_api"]
+        claim: "Kaggle final deadline is 2026-11-02 23:59 UTC."
+      - source_ids: ["arc_2026_overview"]
+        claim: "Research/paper track date is 2026-11-08."
+    resolution: "The paper-track date does not extend the Kaggle deadline."
+
+sources:
+  kaggle_competition:
+    title: "ARC Prize 2026 - ARC-AGI-3"
+    url: "https://www.kaggle.com/competitions/arc-prize-2026-arc-agi-3"
+    publisher: "Kaggle and ARC Prize"
+    type: "competition_landing_page"
+    primary: true
+    mutability: "high"
+    retrieved_on: "2026-07-26"
+
+  kaggle_rules:
+    title: "ARC Prize 2026 - ARC-AGI-3: Official Rules"
+    url: "https://www.kaggle.com/competitions/arc-prize-2026-arc-agi-3/rules"
+    publisher: "Kaggle and ARC Prize"
+    type: "binding_competition_rules"
+    primary: true
+    mutability: "high"
+    retrieved_on: "2026-07-26"
+    claims_used:
+      - "eligibility, accounts, teams, and sharing restrictions"
+      - "daily and final submission limits"
+      - "winner selection and tie-breaking"
+      - "open-source and winner-deliverable obligations"
+      - "prize distribution"
+
+  kaggle_data:
+    title: "ARC Prize 2026 - ARC-AGI-3: Data"
+    url: "https://www.kaggle.com/competitions/arc-prize-2026-arc-agi-3/data"
+    publisher: "Kaggle and ARC Prize"
+    type: "competition_documentation"
+    primary: true
+    mutability: "medium"
+    retrieved_on: "2026-07-26"
+    claims_used:
+      - "110 hidden games split equally between Public and Private Leaderboards"
+      - "stale 1.0-capped scoring prose retained as a documented conflict"
+
+  kaggle_leaderboard:
+    title: "ARC Prize 2026 - ARC-AGI-3: Leaderboard"
+    url: "https://www.kaggle.com/competitions/arc-prize-2026-arc-agi-3/leaderboard"
+    publisher: "Kaggle"
+    type: "live_leaderboard"
+    primary: true
+    mutability: "continuous"
+    retrieved_at_utc: "2026-07-27T06:22:44Z"
+
+  kaggle_timeline:
+    title: "ARC Prize 2026 - ARC-AGI-3: Timeline"
+    url: "https://www.kaggle.com/competitions/arc-prize-2026-arc-agi-3/overview/timeline"
+    publisher: "Kaggle and ARC Prize"
+    type: "competition_timeline"
+    primary: true
+    mutability: "high"
+    retrieved_on: "2026-07-26"
+
+  kaggle_prizes:
+    title: "ARC Prize 2026 - ARC-AGI-3: Prizes"
+    url: "https://www.kaggle.com/competitions/arc-prize-2026-arc-agi-3/overview/prizes"
+    publisher: "Kaggle and ARC Prize"
+    type: "competition_prize_page"
+    primary: true
+    mutability: "high"
+    retrieved_on: "2026-07-26"
+
+  kaggle_code_requirements:
+    title: "ARC Prize 2026 - ARC-AGI-3: Code Requirements"
+    url: >-
+      https://www.kaggle.com/competitions/arc-prize-2026-arc-agi-3/overview/code-requirements
+    publisher: "Kaggle and ARC Prize"
+    type: "competition_execution_rules"
+    primary: true
+    mutability: "high"
+    retrieved_on: "2026-07-26"
+    claims_used:
+      - "notebook-only submission"
+      - "internet disabled"
+      - "runtime and output contract"
+
+  kaggle_evaluation:
+    title: "ARC Prize 2026 - ARC-AGI-3: Evaluation"
+    url: >-
+      https://www.kaggle.com/competitions/arc-prize-2026-arc-agi-3/overview/evaluation
+    publisher: "Kaggle and ARC Prize"
+    type: "competition_evaluation_page"
+    primary: true
+    mutability: "medium"
+    retrieved_on: "2026-07-26"
+
+  kaggle_live_competition_api:
+    title: "Kaggle CompetitionService.GetCompetition capture"
+    url: >-
+      https://www.kaggle.com/api/i/competitions.CompetitionService/GetCompetition
+    request:
+      competitionName: "arc-prize-2026-arc-agi-3"
+    publisher: "Kaggle"
+    type: "first_party_live_api"
+    primary: true
+    mutability: "continuous"
+    retrieved_at_utc: "2026-07-27T06:22:44Z"
+    claims_used:
+      - "competition ID and participation counts"
+      - "runtime, team, submission, and verification settings"
+      - "reward and backend deadlines"
+
+  kaggle_live_leaderboard_api:
+    title: "Kaggle LeaderboardService.GetLeaderboard capture"
+    url: >-
+      https://www.kaggle.com/api/i/competitions.LeaderboardService/GetLeaderboard
+    request:
+      competitionId: 133468
+    publisher: "Kaggle"
+    type: "first_party_live_api"
+    primary: true
+    mutability: "continuous"
+    retrieved_at_utc: "2026-07-27T06:22:44Z"
+    claims_used:
+      - "dated top-five Public Leaderboard ordering and scores"
+
+  arc_2026_overview:
+    title: "ARC Prize 2026"
+    url: "https://arcprize.org/competitions/2026"
+    publisher: "ARC Prize Foundation"
+    type: "official_program_overview"
+    primary: true
+    mutability: "high"
+    retrieved_on: "2026-07-26"
+    claims_used:
+      - "program schedule and separate research-track date"
+      - "general open-source licensing guidance"
+
+  arc_agi_3_track:
+    title: "ARC Prize 2026: ARC-AGI-3"
+    url: "https://arcprize.org/competitions/2026/arc-agi-3"
+    publisher: "ARC Prize Foundation"
+    type: "official_track_page"
+    primary: true
+    mutability: "high"
+    retrieved_on: "2026-07-26"
+    claims_used:
+      - "alternate milestone and bonus language retained as conflicts"
+      - "stale hardware-announcement language"
+
+  official_technical_report:
+    title: "ARC-AGI-3: A New Challenge for Frontier Agentic Intelligence"
+    url: "https://arcprize.org/media/ARC_AGI_3_Technical_Report.pdf"
+    publisher: "ARC Prize authors"
+    type: "official_technical_report"
+    primary: true
+    mutability: "versioned"
+    retrieved_on: "2026-07-26"
+    claims_used:
+      - "25 Public Demo, 55 Semi-Private, and 55 Fully Private environments"
+      - "frame/action benchmark contract"
+      - "Foundation action-budget protocol"
+
+  official_scoring_methodology:
+    title: "ARC-AGI-3 Scoring Methodology"
+    url: "https://docs.arcprize.org/methodology"
+    publisher: "ARC Prize Foundation"
+    type: "official_documentation"
+    primary: true
+    mutability: "high"
+    retrieved_on: "2026-07-26"
+    claims_used:
+      - "RHAE name, human baseline, action definition, and formulas"
+      - "1.15 per-level cap"
+      - "weighted completion cap and arithmetic game average"
+
+  official_actions:
+    title: "ARC-AGI-3 Actions"
+    url: "https://docs.arcprize.org/actions"
+    publisher: "ARC Prize Foundation"
+    type: "official_documentation"
+    primary: true
+    mutability: "high"
+    retrieved_on: "2026-07-26"
+    claims_used:
+      - "action identifiers and coordinate convention"
+
+  official_competition_mode:
+    title: "ARC-AGI-3 Competition Mode"
+    url: "https://docs.arcprize.org/toolkit/competition_mode"
+    publisher: "ARC Prize Foundation"
+    type: "official_documentation"
+    primary: true
+    mutability: "high"
+    retrieved_on: "2026-07-26"
+    claims_used:
+      - "API-only operation and scoring of unplayed environments"
+      - "reset, make-call, scorecard, and in-flight-score restrictions"
+
+  official_full_play:
+    title: "ARC-AGI-3 Full Play Test"
+    url: "https://docs.arcprize.org/full-play-test"
+    publisher: "ARC Prize Foundation"
+    type: "official_documentation"
+    primary: true
+    mutability: "high"
+    retrieved_on: "2026-07-26"
+    claims_used:
+      - "direct API flow and state enumeration"
+      - "GAME_OVER can result from max actions or other conditions"
+
+  official_available_games:
+    title: "ARC-AGI-3 Available Games"
+    url: "https://docs.arcprize.org/available-games"
+    publisher: "ARC Prize Foundation"
+    type: "official_documentation"
+    primary: true
+    mutability: "high"
+    retrieved_on: "2026-07-26"
+    claims_used:
+      - "anonymous versus free-key availability"
+
+  official_game_catalog_api:
+    title: "Hosted Public Demo game catalog"
+    url: "https://arcprize.org/api/games"
+    publisher: "ARC Prize Foundation"
+    type: "official_live_api"
+    primary: true
+    mutability: "continuous"
+    retrieved_on: "2026-07-26"
+    claims_used:
+      - "25 versioned Public Demo game IDs"
+      - "titles, tags, and per-level human baseline actions"
+
+  official_kaggle_starter_docs:
+    title: "ARC Prize 2026 Kaggle Starter"
+    url: "https://docs.arcprize.org/arc-prize-2026"
+    publisher: "ARC Prize Foundation"
+    type: "official_documentation"
+    primary: true
+    mutability: "high"
+    retrieved_on: "2026-07-26"
+    claims_used:
+      - "Kaggle gateway and submission workflow"
+
+  toolkit_repository:
+    title: "ARC-AGI Toolkit"
+    url: "https://github.com/arcprize/ARC-AGI"
+    publisher: "ARC Prize Foundation"
+    type: "official_source_code"
+    primary: true
+    mutability: "versioned"
+    retrieved_on: "2026-07-26"
+
+  toolkit_scoring_v099:
+    title: "ARC-AGI Toolkit v0.9.9 scorecard.py"
+    url: >-
+      https://github.com/arcprize/ARC-AGI/blob/f12822c4d550121c35a275008d964afbbed47d2f/arc_agi/scorecard.py
+    publisher: "ARC Prize Foundation"
+    type: "immutable_official_source_code"
+    primary: true
+    mutability: "immutable commit"
+    retrieved_on: "2026-07-26"
+    commit: "f12822c4d550121c35a275008d964afbbed47d2f"
+    claims_used:
+      - "exact 1.15-capped per-level scoring"
+      - "weighted game aggregation and positive-score completion cap"
+      - "action/reset bookkeeping and scorecard averaging"
+
+  official_kaggle_starter_repo:
+    title: "ARC-AGI-3 Kaggle Starter"
+    url: "https://github.com/arcprize/ARC-AGI-3-Kaggle-Starter"
+    publisher: "ARC Prize Foundation"
+    type: "official_source_code"
+    primary: true
+    mutability: "versioned"
+    retrieved_on: "2026-07-26"
+    claims_used:
+      - "listen-and-serve submission architecture"
+      - "editable MAX_ACTIONS=80 guard"
+      - "stale five-submissions-per-day statement retained as a conflict"
+
+  official_benchmarking_repo:
+    title: "ARC-AGI-3 Benchmarking"
+    url: "https://github.com/arcprize/arc-agi-3-benchmarking"
+    publisher: "ARC Prize Foundation"
+    type: "official_source_code"
+    primary: true
+    mutability: "versioned"
+    retrieved_on: "2026-07-26"
+    claims_used:
+      - "Foundation ceil(5H) frontier-model evaluation budget"
+
+  official_opus_5_result:
+    title: "Claude Opus 5 - ARC-AGI Results"
+    url: "https://arcprize.org/results/anthropic-claude-opus-5"
+    publisher: "ARC Prize Foundation"
+    type: "official_scorecard"
+    primary: true
+    mutability: "medium"
+    published: "2026-07-24"
+    retrieved_on: "2026-07-26"
+    claims_used:
+      - "30.16% verified result; the testing policy establishes Semi-Private as the verified split"
+      - "later publication of Public Demo result rows"
+
+  official_testing_policy:
+    title: "ARC Prize Verified Testing Policy"
+    url: "https://arcprize.org/policy"
+    publisher: "ARC Prize Foundation"
+    type: "official_policy"
+    primary: true
+    mutability: "high"
+    retrieved_on: "2026-07-26"
+    claims_used:
+      - "Verified Leaderboard uses the Semi-Private evaluation set"
+      - "one run and a $10,000 runtime cap"
+      - "ARC-AGI-3 Public Demo and Semi-Private agreement guidance"

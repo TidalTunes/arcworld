@@ -1,0 +1,104 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>ARCWorld Inspector</title>
+    <link rel="stylesheet" href="/assets/style.css">
+  </head>
+  <body>
+    <header>
+      <div>
+        <p class="eyebrow">LOCAL RESEARCH INSTRUMENT</p>
+        <h1>ARCWorld Inspector</h1>
+      </div>
+      <div class="header-actions">
+        <span id="health" class="status">connecting</span>
+        <button id="start-toy">New synthetic run</button>
+      </div>
+    </header>
+
+    <main>
+      <aside>
+        <label for="run-select">Run</label>
+        <select id="run-select"></select>
+        <div id="run-meta" class="meta"></div>
+        <h2>Evidence timeline</h2>
+        <ol id="timeline"></ol>
+      </aside>
+
+      <section class="workspace">
+        <div class="toolbar">
+          <div>
+            <span class="label">Step</span>
+            <strong id="step-label">—</strong>
+          </div>
+          <div>
+            <span class="label">Action</span>
+            <strong id="action-label">—</strong>
+          </div>
+          <div>
+            <span class="label">Model</span>
+            <code id="model-label">—</code>
+          </div>
+          <div>
+            <span class="label">Verdict</span>
+            <strong id="verdict-label">—</strong>
+          </div>
+        </div>
+
+        <div class="grids">
+          <figure>
+            <figcaption>Actual</figcaption>
+            <canvas id="actual-grid" width="512" height="512"></canvas>
+          </figure>
+          <figure>
+            <figcaption>Predicted</figcaption>
+            <canvas id="predicted-grid" width="512" height="512"></canvas>
+          </figure>
+          <figure>
+            <figcaption>Difference</figcaption>
+            <canvas id="diff-grid" width="512" height="512"></canvas>
+          </figure>
+        </div>
+
+        <div class="lower">
+          <article>
+            <h2>Objects</h2>
+            <table>
+              <thead><tr><th>ID</th><th>Color</th><th>Area</th><th>Box</th><th>Holes</th></tr></thead>
+              <tbody id="objects"></tbody>
+            </table>
+          </article>
+          <article>
+            <h2>Relations</h2>
+            <ul id="relations" class="relations"></ul>
+          </article>
+          <article>
+            <h2>Mismatch</h2>
+            <div id="mismatch" class="metric-grid"></div>
+          </article>
+        </div>
+
+        <details>
+          <summary>Raw event evidence</summary>
+          <pre id="raw-event"></pre>
+        </details>
+      </section>
+    </main>
+
+    <footer>
+      <div class="action-pad">
+        <span class="label">Live synthetic controls</span>
+        <button data-action="1">A1 ↑</button>
+        <button data-action="2">A2 ↓</button>
+        <button data-action="3">A3 ←</button>
+        <button data-action="4">A4 →</button>
+        <button data-action="5">A5</button>
+        <button data-action="7">A7 undo</button>
+      </div>
+      <p>Actions are enabled only for a live synthetic session. No page is opened automatically.</p>
+    </footer>
+    <script src="/assets/app.js"></script>
+  </body>
+</html>

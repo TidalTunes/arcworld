@@ -1,0 +1,26 @@
+.DS_Store
+.env
+.kaggle/
+.venv/
+__pycache__/
+*.py[cod]
+*.egg-info/
+.pytest_cache/
+.mypy_cache/
+.ruff_cache/
+.coverage
+htmlcov/
+dist/
+build/
+
+# Local research/run artifacts
+.arcworld/
+runs/
+recordings/
+environment_files/
+submission.parquet
+*.arcenv
+
+# Keep small, authored fixtures; ignore ad-hoc replay exports.
+*.jsonl
+!tests/fixtures/*.jsonl
