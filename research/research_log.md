@@ -73,3 +73,24 @@ topic documents and source registries.
   events.
 - Connected scene-ontology identifiers to joint ontology/model hypotheses. This is an
   initial version-space mechanism, not full learned ontology-program induction.
+
+## 2026-07-27 — phase-addressable test console
+
+- Replaced the batch-only control boundary with one shared resumable controller for
+  environment start, induction, planning, one-action execution, and counterexample
+  revision. The small batch agent now drives the same phases as the GUI.
+- Added a pure-filesystem catalog that validates every locally cached exact puzzle and
+  reports malformed or incomplete cache entries without importing the SDK.
+- Added fresh paused test creation for synthetic and official offline puzzles. Official
+  SDK/scorecard construction is deferred to the explicit start phase and bound to an
+  absolute, hash-verified cache path.
+- Added serialized background model work, state-version conflict protection,
+  incremental observable-event polling, explicit auto-run/pause, one-action
+  authorization, durable plan-suffix invalidation, and a fail-closed unknown-outcome
+  state after post-intent transport failure.
+- Moved the default GUI address from `127.0.0.1:8765` to `127.0.0.1:8878`; no browser is
+  opened or controlled.
+- Added deterministic tests proving that non-execution phases spend zero real actions,
+  execution phases spend exactly one, stale requests do not advance, and surprise
+  invalidates the remaining plan before replay-certified revision.
+- No benchmark solve or score was produced.

@@ -3,6 +3,8 @@ from __future__ import annotations
 import socket
 from dataclasses import dataclass, field
 from importlib import import_module
+from pathlib import Path
+from types import SimpleNamespace
 from typing import Any
 
 import pytest
@@ -253,3 +255,43 @@ def test_injected_wrapper_path_imports_no_sdk_and_opens_no_network(
     assert environment.observation.latest == freeze_grid(_grid(1))
     assert environment.step(Action(ActionKind.ACTION1)).latest == freeze_grid(_grid(2))
     assert environment.reset().latest == freeze_grid(_grid(3))
+
+
+def test_offline_factory_passes_absolute_roots_that_cannot_be_env_overridden(
+    tmp_path: Path,
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    captured: dict[str, object] = {}
+    environments = tmp_path / "environment_files"
+    recordings = tmp_path / "recordings"
+    environments.mkdir()
+
+    class FakeArcade:
+        def __init__(self, **kwargs: object) -> None:
+            captured.update(kwargs)
+            self.operation_mode = SimpleNamespace(value="offline")
+
+        def make(self, game_id: str, **kwargs: object) -> FakeWrapper:
+            captured["game_id"] = game_id
+            captured["make"] = kwargs
+            return FakeWrapper(_raw(1, actions=(1,)))
+
+    fake_sdk = SimpleNamespace(
+        Arcade=FakeArcade,
+        OperationMode=SimpleNamespace(OFFLINE="offline"),
+    )
+    monkeypatch.chdir(tmp_path)
+    monkeypatch.setenv("ENVIRONMENTS_DIR", str(tmp_path / "wrong-cache"))
+    monkeypatch.setattr(
+        "arcworld.env.arc_adapter.import_module",
+        lambda name: fake_sdk if name == "arc_agi" else import_module(name),
+    )
+
+    ArcAdapter.open_offline(
+        "ab12-1234abcd",
+        environments_dir=Path("environment_files"),
+        recordings_dir=Path("recordings"),
+    )
+
+    assert captured["environments_dir"] == str(environments.resolve())
+    assert captured["recordings_dir"] == str(recordings.resolve())

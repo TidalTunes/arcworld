@@ -62,7 +62,7 @@ def world_model_input(
             graph.to_jsonable() for graph in parse_scene_candidates(history.latest.latest)
         ],
         "current_model": current_source,
-        "latest_mismatch": dict(mismatch or {}),
+        "latest_mismatch": _strip_identity(dict(mismatch or {})),
         "preferred_scene_ontology": preferred_ontology,
     }
     return (
@@ -82,7 +82,7 @@ def plan_input(
 ) -> str:
     context = {
         "world_model": model_source,
-        "simulator_state": dict(state),
+        "simulator_state": _strip_identity(dict(state)),
         "observation": _strip_identity(dict(observation)),
         "planning_context": _strip_identity(dict(planning_context)),
         "maximum_plan_actions": max_actions,
@@ -112,10 +112,15 @@ def _strip_identity(value: dict[str, Any]) -> dict[str, Any]:
         if isinstance(item, dict):
             result[key] = _strip_identity(item)
         elif isinstance(item, list):
-            result[key] = [
-                _strip_identity(element) if isinstance(element, dict) else element
-                for element in item
-            ]
+            result[key] = [_strip_nested(element) for element in item]
         else:
             result[key] = item
     return result
+
+
+def _strip_nested(value: Any) -> Any:
+    if isinstance(value, dict):
+        return _strip_identity(value)
+    if isinstance(value, list):
+        return [_strip_nested(item) for item in value]
+    return value

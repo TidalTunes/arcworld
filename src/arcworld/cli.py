@@ -34,7 +34,11 @@ def build_parser() -> argparse.ArgumentParser:
     gui = subparsers.add_parser("gui", help="serve the local dashboard; does not open a browser")
     gui.add_argument("--store", type=Path, default=Path(".arcworld/runs.db"))
     gui.add_argument("--host", default="127.0.0.1")
-    gui.add_argument("--port", type=int, default=8765)
+    gui.add_argument("--port", type=int, default=8878)
+    gui.add_argument("--workspace", type=Path, default=Path(".arcworld"))
+    gui.add_argument("--environments-dir", type=Path, default=Path("environment_files"))
+    gui.add_argument("--recordings-dir", type=Path, default=Path("recordings"))
+    gui.add_argument("--codex-bin", type=Path, help="Codex CLI executable")
 
     games = subparsers.add_parser("list-games", help="list locally installed official games")
     games.add_argument("--environments-dir", type=Path, default=Path("environment_files"))
@@ -45,6 +49,7 @@ def build_parser() -> argparse.ArgumentParser:
     )
     run.add_argument("--game", required=True)
     run.add_argument("--environments-dir", type=Path, default=Path("environment_files"))
+    run.add_argument("--recordings-dir", type=Path, default=Path("recordings"))
     run.add_argument("--workspace", type=Path, default=Path(".arcworld"))
     run.add_argument("--action-budget", type=int, default=500)
     run.add_argument("--candidate-count", type=int, default=2)
@@ -88,13 +93,22 @@ def main(argv: list[str] | None = None) -> None:
     elif args.command == "toy-run":
         _toy_run(args.root)
     elif args.command == "gui":
-        _gui(args.store, args.host, args.port)
+        _gui(
+            args.store,
+            args.host,
+            args.port,
+            args.workspace,
+            args.environments_dir,
+            args.recordings_dir,
+            args.codex_bin,
+        )
     elif args.command == "list-games":
         _list_games(args.environments_dir)
     elif args.command == "run-offline":
         _run_offline(
             args.game,
             args.environments_dir,
+            args.recordings_dir,
             args.workspace,
             args.action_budget,
             args.candidate_count,
@@ -210,33 +224,49 @@ def _toy_run(root: Path) -> None:
     )
 
 
-def _gui(store: Path, host: str, port: int) -> None:
+def _gui(
+    store: Path,
+    host: str,
+    port: int,
+    workspace: Path,
+    environments_dir: Path,
+    recordings_dir: Path,
+    codex_bin: Path | None,
+) -> None:
     try:
         import uvicorn
     except ImportError as error:
         raise SystemExit("install ARCWorld with: pip install -e '.[gui]'") from error
     from arcworld.gui.app import create_app
 
-    uvicorn.run(create_app(store), host=host, port=port, log_level="info")
+    uvicorn.run(
+        create_app(
+            store,
+            workspace=workspace,
+            environments_dir=environments_dir,
+            recordings_dir=recordings_dir,
+            codex_bin=codex_bin,
+        ),
+        host=host,
+        port=port,
+        log_level="info",
+    )
 
 
 def _list_games(environments_dir: Path) -> None:
-    try:
-        arc_agi = __import__("arc_agi", fromlist=["Arcade", "OperationMode"])
-    except ModuleNotFoundError as error:
-        raise SystemExit("install ARCWorld with: pip install -e '.[arc]'") from error
-    arcade = arc_agi.Arcade(
-        operation_mode=arc_agi.OperationMode.OFFLINE,
-        environments_dir=str(environments_dir),
-    )
-    environments: list[Any] = arcade.get_environments()
-    for item in sorted(environments, key=lambda value: value.game_id):
+    from arcworld.env.provenance import discover_offline_puzzles
+
+    catalog = discover_offline_puzzles(environments_dir)
+    for item in catalog.puzzles:
         print(item.game_id)
+    for issue in catalog.issues:
+        print(f"warning: {issue.code}: {issue.detail}", file=sys.stderr)
 
 
 def _run_offline(
     game_id: str,
     environments_dir: Path,
+    recordings_dir: Path,
     workspace: Path,
     action_budget: int,
     candidate_count: int,
@@ -255,13 +285,18 @@ def _run_offline(
 
     from arcworld.audit import audit_real_llm_run
     from arcworld.composition import build_codex_agent, build_openai_agent
-    from arcworld.env.arc_adapter import ArcAdapter
+    from arcworld.env.offline_session import DeferredOfflineEnvironment
     from arcworld.env.provenance import collect_environment_provenance
 
+    environments_dir = environments_dir.expanduser().resolve()
+    recordings_dir = recordings_dir.expanduser().resolve()
+    workspace = workspace.expanduser().resolve()
     provenance = collect_environment_provenance(environments_dir, game_id)
-    environment = ArcAdapter.open_offline(
-        game_id,
+    environment = DeferredOfflineEnvironment(
+        game_id=game_id,
         environments_dir=environments_dir,
+        recordings_dir=recordings_dir,
+        expected_provenance=provenance,
         save_recording=True,
         seed=seed,
     )

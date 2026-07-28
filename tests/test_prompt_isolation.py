@@ -24,7 +24,10 @@ def test_model_context_redacts_environment_identity_and_metadata() -> None:
 def test_plan_context_redacts_nested_identity() -> None:
     text = plan_input(
         model_source="def placeholder(): pass",
-        state={},
+        state={
+            "game_id": "state-secret",
+            "nested": [{"metadata": {"guid": "deep-state-secret"}}],
+        },
         observation={
             "frames": [[[0]]],
             "game_id": "secret",
@@ -35,3 +38,23 @@ def test_plan_context_redacts_nested_identity() -> None:
     )
     assert "secret" not in text
     assert "context-secret" not in text
+    assert "state-secret" not in text
+    assert "deep-state-secret" not in text
+
+
+def test_revision_mismatch_redacts_control_plane_identity() -> None:
+    observation = Observation(
+        frames=(freeze_grid([[0]]),),
+        available_actions=(ActionKind.ACTION1,),
+    )
+    text = world_model_input(
+        EpisodeHistory(observation),
+        mismatch={
+            "game_id": "mismatch-secret",
+            "nested": [{"metadata": {"guid": "deep-mismatch-secret"}}],
+            "changed_pixels": 1,
+        },
+    )
+    assert "mismatch-secret" not in text
+    assert "deep-mismatch-secret" not in text
+    assert "changed_pixels" in text

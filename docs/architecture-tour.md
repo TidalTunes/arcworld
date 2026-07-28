@@ -1,9 +1,9 @@
 # Architecture tour
 
 ARCWorld keeps the control file small and puts every mechanism behind an explicit
-interface. Start with [`agent.py`](../src/arcworld/agent.py): it resets, asks for a
-certified model, asks for a pre-simulated plan, executes until terminal or surprise,
-and requests revision after surprise.
+interface. [`interactive.py`](../src/arcworld/interactive.py) owns the resumable phase
+state machine. [`agent.py`](../src/arcworld/agent.py) is the batch facade that repeatedly
+advances that same controller until it finishes.
 
 ## Evidence path
 
@@ -105,11 +105,22 @@ Files:
 
 ## Inspection boundary
 
-`arcworld gui` serves a local FastAPI application and never opens a browser. The UI
-shows Actual, Predicted, and Difference grids, timeline evidence, objects, relations,
-and mismatch metrics. The live buttons operate only the bundled synthetic world.
+`arcworld gui` serves a local FastAPI application and never opens a browser. A local
+catalog validates cached official puzzle metadata and source hashes without starting
+the SDK. A fresh test remains paused at each induction, planning, execution, or revision
+boundary. Execution phases require an explicit one-real-action authorization, official
+auto-run pauses before them by default, stale concurrent commands are rejected by state
+version, and model work runs in a serialized background worker so the UI can poll its
+observable evidence.
+
+The console shows sanitized requests, final model responses, generated Python,
+verification and rollout receipts, Actual / Predicted / Difference grids, objects,
+relations, and mismatch metrics. These are model outputs and evidence—not hidden
+provider reasoning traces.
 
 Files:
 
+- [`interactive.py`](../src/arcworld/interactive.py)
+- [`gui/sessions.py`](../src/arcworld/gui/sessions.py)
 - [`gui/app.py`](../src/arcworld/gui/app.py)
 - [`gui/static/`](../src/arcworld/gui/static/)

@@ -8,6 +8,7 @@ from __future__ import annotations
 
 import ast
 import hashlib
+import importlib.util
 import json
 import re
 from dataclasses import dataclass
@@ -95,10 +96,105 @@ class EnvironmentProvenance:
 
 
 @dataclass(frozen=True, slots=True)
+class OfflinePuzzleSummary:
+    """Control-plane information for one valid, locally cached puzzle."""
+
+    game_id: str
+    title: str | None
+    provenance: EnvironmentProvenance
+    runtime_ready: bool
+
+    def to_jsonable(self) -> dict[str, object]:
+        return {
+            "game_id": self.game_id,
+            "title": self.title,
+            "runtime_ready": self.runtime_ready,
+            "source_sha256": self.provenance.source.sha256,
+            "source_size_bytes": self.provenance.source.size_bytes,
+        }
+
+
+@dataclass(frozen=True, slots=True)
+class DiscoveryIssue:
+    """A cache problem surfaced instead of silently hiding an environment."""
+
+    path: Path
+    code: str
+    detail: str
+
+    def to_jsonable(self) -> dict[str, str]:
+        return {"path": str(self.path), "code": self.code, "detail": self.detail}
+
+
+@dataclass(frozen=True, slots=True)
+class OfflinePuzzleCatalog:
+    puzzles: tuple[OfflinePuzzleSummary, ...]
+    issues: tuple[DiscoveryIssue, ...]
+
+    def to_jsonable(self) -> dict[str, object]:
+        return {
+            "puzzles": [puzzle.to_jsonable() for puzzle in self.puzzles],
+            "issues": [issue.to_jsonable() for issue in self.issues],
+        }
+
+
+@dataclass(frozen=True, slots=True)
 class _MetadataCandidate:
     path: Path
     content: bytes
     value: dict[str, object]
+
+
+def discover_offline_puzzles(
+    environments_dir: str | Path,
+) -> OfflinePuzzleCatalog:
+    """List valid exact environments using local files only.
+
+    Discovery deliberately does not instantiate the SDK. Invalid, duplicate, or
+    incomplete cache entries are returned as issues rather than disappearing.
+    """
+
+    root = Path(environments_dir).expanduser()
+    if not root.is_dir():
+        issue = DiscoveryIssue(
+            root,
+            "missing_directory",
+            f"environment cache directory does not exist or is not a directory: {root}",
+        )
+        return OfflinePuzzleCatalog((), (issue,))
+    root = root.resolve()
+    candidates: dict[str, list[_MetadataCandidate]] = {}
+    issues: list[DiscoveryIssue] = []
+    for metadata_path in sorted(root.rglob("metadata.json")):
+        try:
+            candidate = _read_metadata(metadata_path.resolve())
+            game_id = str(candidate.value["game_id"])
+            _validate_exact_game_id(game_id)
+        except EnvironmentProvenanceError as exc:
+            issues.append(DiscoveryIssue(metadata_path.resolve(), type(exc).__name__, str(exc)))
+            continue
+        candidates.setdefault(game_id, []).append(candidate)
+
+    runtime_ready = _runtime_available()
+    puzzles: list[OfflinePuzzleSummary] = []
+    for game_id, entries in sorted(candidates.items()):
+        selected_path = entries[0].path
+        try:
+            provenance = collect_environment_provenance(root, game_id)
+        except EnvironmentProvenanceError as exc:
+            issues.append(DiscoveryIssue(selected_path, type(exc).__name__, str(exc)))
+            continue
+        raw_title = entries[0].value.get("title")
+        title = raw_title if isinstance(raw_title, str) and raw_title.strip() else None
+        puzzles.append(
+            OfflinePuzzleSummary(
+                game_id=game_id,
+                title=title,
+                provenance=provenance,
+                runtime_ready=runtime_ready,
+            )
+        )
+    return OfflinePuzzleCatalog(tuple(puzzles), tuple(issues))
 
 
 def collect_environment_provenance(
@@ -297,3 +393,13 @@ def _installed_version(distribution_name: str) -> str | None:
         return version(distribution_name)
     except PackageNotFoundError:
         return None
+
+
+def _runtime_available() -> bool:
+    try:
+        return (
+            importlib.util.find_spec("arc_agi") is not None
+            and importlib.util.find_spec("arcengine") is not None
+        )
+    except (ImportError, ModuleNotFoundError, ValueError):
+        return False

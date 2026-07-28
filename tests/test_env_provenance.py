@@ -20,6 +20,7 @@ from arcworld.env.provenance import (
     MissingSourceError,
     SourceMismatchError,
     collect_environment_provenance,
+    discover_offline_puzzles,
 )
 
 
@@ -187,3 +188,37 @@ def test_collection_imports_no_sdk_and_opens_no_network(
 
     assert record.game_id == "ab12-1234abcd"
     assert {name: name in sys.modules for name in ("arc_agi", "arcengine")} == module_presence
+
+
+def test_offline_catalog_is_sorted_validated_and_surfaces_bad_entries(
+    tmp_path: Path,
+) -> None:
+    _write_environment(tmp_path, "zz99-deadbeef")
+    first_metadata, _ = _write_environment(tmp_path, "ab12-1234abcd")
+    value = json.loads(first_metadata.read_text(encoding="utf-8"))
+    value["tags"] = ["do-not-expose"]
+    value["baseline_actions"] = [1, 2, 3]
+    first_metadata.write_text(json.dumps(value), encoding="utf-8")
+    broken = tmp_path / "broken" / "metadata.json"
+    broken.parent.mkdir()
+    broken.write_text("{not-json", encoding="utf-8")
+
+    catalog = discover_offline_puzzles(tmp_path)
+
+    assert [item.game_id for item in catalog.puzzles] == [
+        "ab12-1234abcd",
+        "zz99-deadbeef",
+    ]
+    assert len(catalog.issues) == 1
+    assert catalog.issues[0].code == "InvalidMetadataError"
+    serialized = json.dumps(catalog.to_jsonable())
+    assert "do-not-expose" not in serialized
+    assert "baseline_actions" not in serialized
+    assert "class Ab12" not in serialized
+
+
+def test_offline_catalog_missing_directory_is_an_explicit_issue(tmp_path: Path) -> None:
+    catalog = discover_offline_puzzles(tmp_path / "absent")
+    assert catalog.puzzles == ()
+    assert len(catalog.issues) == 1
+    assert catalog.issues[0].code == "missing_directory"

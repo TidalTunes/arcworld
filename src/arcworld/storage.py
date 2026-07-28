@@ -139,6 +139,43 @@ class RunStore:
             for row in rows
         ]
 
+    def events_after(
+        self,
+        run_id: str,
+        *,
+        after_sequence: int = -1,
+        limit: int = 200,
+    ) -> list[dict[str, Any]]:
+        """Return a contiguous page for low-cost live polling."""
+
+        if after_sequence < -1:
+            raise ValueError("after_sequence must be at least -1")
+        if not 1 <= limit <= 1000:
+            raise ValueError("limit must be in 1..1000")
+        with closing(self._connect()) as connection:
+            connection.row_factory = sqlite3.Row
+            rows = connection.execute(
+                """
+                SELECT sequence, created_at, kind, payload_json, previous_hash, event_hash
+                FROM events
+                WHERE run_id = ? AND sequence > ?
+                ORDER BY sequence
+                LIMIT ?
+                """,
+                (run_id, after_sequence, limit),
+            ).fetchall()
+        return [
+            {
+                "sequence": row["sequence"],
+                "created_at": row["created_at"],
+                "kind": row["kind"],
+                "payload": json.loads(row["payload_json"]),
+                "previous_hash": row["previous_hash"],
+                "event_hash": row["event_hash"],
+            }
+            for row in rows
+        ]
+
     def run(self, run_id: str) -> dict[str, Any]:
         with closing(self._connect()) as connection:
             connection.row_factory = sqlite3.Row

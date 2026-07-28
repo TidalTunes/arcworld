@@ -36,13 +36,13 @@ README.
 | Latent-state induction | ⬜ | Design only |
 | Tiered exact/semantic verification | 🟨 | Exact and semantic diffs exist; tier policy and shadow likelihoods are incomplete |
 | Planning | 🟨 | Bounded BFS, plan DSL, and verified executor exist; CEGAR and portfolio do not |
-| Short high-level agent loop | ✅ | Protocol-oriented controller plus concrete revision/probe/plan services pass a local-reasoner end-to-end test |
+| Short high-level agent loop | ✅ | Batch and GUI share a phase-addressable controller; every execution phase spends at most one real action |
 | Optional OpenAI development transports | 🟨 | Authenticated Codex CLI live run passed with provider IDs and token usage; Responses API, cost capture, and retry policy remain untested |
 | Synthetic environment | ✅ | Deterministic key-door toy world and exact model |
 | Synthetic blind holdout suite | ⬜ | One visible toy is not a blind suite |
-| Local inspection GUI | ✅ | Typed real/toy runs, deep-audit status, generated source, Actual/Predicted/Diff, and timeline are exposed; API integration test passes |
+| Local inspection GUI | ✅ | Fresh paused tests for any validated local puzzle, async phase stepping/auto/pause, generated artifacts, Actual/Predicted/Diff, and incremental timeline polling |
 | Scoring utilities | ✅ | Formula helpers, CLI, eight edge/reference tests, and a 5,000-game research differential check pass |
-| Automated tests | ✅ | 66 tests across 16 files pass in the project virtual environment |
+| Automated tests | ✅ | 79 tests across 18 files pass in the project virtual environment |
 | Lint/type/test gate | ✅ | Ruff, strict mypy, and pytest pass |
 | Public Demo evaluation | 🟨 | One-action `vc33` infrastructure test passed; no solve, score, or 25-game aggregate has been attempted |
 | Kaggle submission/evaluation | ⬜ | No submission has been performed |
@@ -203,10 +203,16 @@ README.
 - [x] Local dashboard shows Actual, Predicted, and Difference grids.
 - [x] Dashboard shows objects, relations, changed-pixel/object metrics, raw
   evidence, and a timeline.
-- [x] Development-only live controls for the synthetic toy.
+- [x] Deterministic, model-driven synthetic test profile for local GUI stepping.
+- [x] Pure-filesystem catalog for every valid locally cached official puzzle.
+- [x] Fresh paused test creation with induction, planning, one-action execution,
+  and revision phase controls.
+- [x] Non-blocking status/event polling, stale-command rejection, auto-run, and
+  pause-after-current-phase behavior.
 - [ ] Active/shadow model timeline with weights and evidence links.
 - [ ] Ontology comparison and latent-state inspector.
-- [ ] Plan rollout tree, planner statistics, and cancelled-action display.
+- [ ] Plan rollout tree and planner statistics; cancelled suffix evidence is
+  available in the timeline.
 - [ ] Explicit read-only evaluation mode and scored-run lock.
 - [ ] Replay export/import and experiment comparison.
 - [ ] Browser-level GUI tests and accessibility/responsive review.
@@ -230,9 +236,9 @@ README.
 
 - [x] Domain, model, perception, hypothesis/probe, planning, storage/GUI API,
   and end-to-end toy CLI tests.
-- [x] 66 tests pass in `.venv`.
+- [x] 79 tests pass in `.venv`.
 - [x] Ruff reports no issues.
-- [x] Strict mypy reports no issues across 45 checked source modules.
+- [x] Strict mypy reports no issues across 49 checked source modules.
 - [x] Dedicated scoring edge-case tests.
 - [x] Six dependency-free official-adapter contract tests.
 - [x] Generated-code module-scope, global-purity, and timeout tests.
@@ -247,10 +253,11 @@ README.
 - [x] `PYTHONPATH=src python3 -m arcworld.cli toy-run --root <temporary-dir>`
 - [x] Toy result: `WIN`, 7 real actions, no divergence, complete replay
   certified.
-- [x] `.venv/bin/python -m pytest -q`: 48 passed.
+- [x] `.venv/bin/python -m pytest -q`: 79 passed.
 - [x] `.venv/bin/ruff check .`: all checks passed.
-- [x] `.venv/bin/mypy`: no issues in 43 checked source modules.
-- [x] FastAPI storage/live-toy/inspection API smoke test is included in pytest.
+- [x] `.venv/bin/mypy`: no issues in 49 checked source modules.
+- [x] FastAPI storage/interactive-session/inspection API smoke tests are included in
+  pytest.
 - [x] `research/sources-strategies.yaml` parsed successfully.
 - [x] All source IDs referenced by that strategy registry resolve internally.
 - [x] `git diff --check` passed for the strategy research artifacts when they

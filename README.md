@@ -32,9 +32,11 @@ for action cost and irreversible risk.
 - A shadow hypothesis ledger and disagreement-based probe ranking.
 - Bounded simulator search, a Python plan DSL, and per-action verified execution.
 - Optional OpenAI Responses API roles, isolated from benchmark metadata.
-- An authenticated OpenAI Codex CLI transport for API-key-free development runs.
+- An authenticated OpenAI Codex CLI transport for API-key-free development runs, with
+  post-hoc tool-attempt rejection (not an evaluation confidentiality boundary).
 - An offline official-SDK adapter and a deterministic synthetic environment.
-- A restrained local dashboard with Actual / Predicted / Diff views and a model timeline.
+- A phase-addressable local test console with Actual / Predicted / Diff views, observable
+  model artifacts, and one-real-action stepping.
 - A deep run audit linking provider receipts, generated source, sandbox execution,
   simulation, and official environment transitions.
 
@@ -59,9 +61,11 @@ arcworld toy-run
 arcworld gui
 ```
 
-The dashboard binds to `127.0.0.1:8765` and does not open a browser automatically.
-Real public-game runs are labeled separately from synthetic fixtures and show their
-event-chain and deep-audit status.
+The dashboard binds to `127.0.0.1:8878` and does not open or control a browser. It can
+create a fresh paused test for the synthetic fixture or any validated puzzle in the
+local `environment_files/` cache. Advance induction, planning, execution, and revision
+one phase at a time, or explicitly enable auto-run. An execution step authorizes at
+most one real action.
 
 To work with locally downloaded public environments:
 

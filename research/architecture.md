@@ -439,8 +439,8 @@ verification, prompting, or search.
 | Probing | Candidate generation, information/risk scoring | `src/arcworld/probing.py` |
 | Planning | Portfolio, CEGAR, plan DSL, verified executor | `src/arcworld/planning/` |
 | Reasoners | Optional OpenAI/local adapters and sanitized context | `src/arcworld/llm/`; local adapter planned |
-| Orchestration | Small phase/state-machine composition | `src/arcworld/agent.py`; phase integration partial |
-| Inspection | Actual/predicted/diff, timelines, controls, exports | `src/arcworld/gui/`; advanced views planned |
+| Orchestration | Small phase/state-machine composition | `interactive.py`; `agent.py` is the batch facade |
+| Inspection | Paused tests, phase controls, actual/predicted/diff, timelines | `src/arcworld/gui/`; advanced views planned |
 | Evaluation | Manifests, runners, scoring, ablations, reports | `src/arcworld/evaluation/` planned |
 
 Mechanisms depend on narrow protocols so that an independent researcher can

@@ -111,11 +111,13 @@ class ArcAdapter:
                 "OPERATION_MODE=competition overrides SDK OFFLINE mode"
             )
 
+        environment_root = Path(environments_dir).expanduser().resolve()
+        recording_root = Path(recordings_dir).expanduser().resolve()
         arcade = sdk.Arcade(
             arc_api_key="offline-local-only",
             operation_mode=sdk.OperationMode.OFFLINE,
-            environments_dir=str(environments_dir),
-            recordings_dir=str(recordings_dir),
+            environments_dir=str(environment_root),
+            recordings_dir=str(recording_root),
         )
         resolved_mode = getattr(arcade.operation_mode, "value", arcade.operation_mode)
         if resolved_mode != "offline":
@@ -132,7 +134,7 @@ class ArcAdapter:
             renderer=renderer,
         )
         if wrapper is None:
-            raise ArcAdapterError(f"game {game_id!r} was not found under {str(environments_dir)!r}")
+            raise ArcAdapterError(f"game {game_id!r} was not found under {str(environment_root)!r}")
         return cls(wrapper, _sdk_owner=arcade)
 
     @property

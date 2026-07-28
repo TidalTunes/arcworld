@@ -114,9 +114,8 @@ def test_audit_links_provider_code_sandboxes_and_real_transition(tmp_path: Path)
     assert result.real_actions == 7
     assert report.passed
     assert all(check.passed for check in report.checks)
-    gui_payload = (
-        TestClient(create_app(workspace / "runs.db")).get(f"/api/runs/{bundle.run_id}").json()
-    )
+    with TestClient(create_app(workspace / "runs.db")) as client:
+        gui_payload = client.get(f"/api/runs/{bundle.run_id}").json()
     assert gui_payload["audit"]["passed"]
     assert gui_payload["event_chain_valid"]
     assert gui_payload["run"]["config"]["experiment"]["run_kind"].endswith("live-llm")

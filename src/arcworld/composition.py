@@ -41,6 +41,7 @@ def build_openai_agent(
     model: str | None = None,
     effort: str | None = None,
     workspace: Path = Path(".arcworld"),
+    store_path: Path | None = None,
     label: str = "unknown-world",
     candidate_count: int = 2,
     run_metadata: Mapping[str, Any] | None = None,
@@ -66,6 +67,7 @@ def build_openai_agent(
         revision_reasoner=revision_reasoner,
         planning_reasoner=planning_reasoner,
         workspace=workspace,
+        store_path=store_path,
         label=label,
         candidate_count=candidate_count,
         run_metadata=run_metadata,
@@ -79,6 +81,7 @@ def build_codex_agent(
     effort: str = "low",
     executable: Path | None = None,
     workspace: Path = Path(".arcworld"),
+    store_path: Path | None = None,
     label: str = "unknown-world",
     candidate_count: int = 1,
     run_metadata: Mapping[str, Any] | None = None,
@@ -98,6 +101,7 @@ def build_codex_agent(
         revision_reasoner=revision_reasoner,
         planning_reasoner=planning_reasoner,
         workspace=workspace,
+        store_path=store_path,
         label=label,
         candidate_count=candidate_count,
         run_metadata=run_metadata,
@@ -110,12 +114,13 @@ def build_agent(
     revision_reasoner: Reasoner,
     planning_reasoner: Reasoner,
     workspace: Path = Path(".arcworld"),
+    store_path: Path | None = None,
     label: str = "unknown-world",
     candidate_count: int = 2,
     run_metadata: Mapping[str, Any] | None = None,
 ) -> AgentBundle:
     """Compose either hosted development roles or bundled local reasoners."""
-    store = RunStore(workspace / "runs.db")
+    store = RunStore(store_path or workspace / "runs.db")
     run_id = store.create_run(
         label,
         {

@@ -25,11 +25,38 @@ arcworld verify-run --run-id <run-id>
 ## Dashboard
 
 ```bash
-arcworld gui --host 127.0.0.1 --port 8765
+arcworld gui \
+  --host 127.0.0.1 \
+  --port 8878 \
+  --environments-dir environment_files \
+  --workspace .arcworld
 ```
 
-Open `http://127.0.0.1:8765` yourself if desired. The command does not control or open a
+Open `http://127.0.0.1:8878` yourself if desired. The command does not control or open a
 browser.
+
+The “New test” form discovers exact, locally cached puzzle versions without importing
+the SDK or contacting a remote service. A new test starts paused. The controls expose
+the following repeatable cycle:
+
+1. initialize the already-created environment;
+2. induce or revise a replay-certified world model;
+3. generate and fully simulate a Python plan;
+4. execute exactly one real action;
+5. compare prediction with reality and invalidate the remaining plan on mismatch.
+
+`Auto-run` begins successive phases, but an official test pauses before every real
+action by default. Review the committed plan and use “Execute 1 real action,” or
+separately enable automatic real actions for that run. The server rejects an execution
+phase without an explicit one-action authorization. `Pause` prevents the browser from
+requesting the next phase; it cannot cancel a provider request already in flight. The
+event trace polls sanitized reasoner requests, final responses, generated Python,
+verification, simulator rollout receipts, and real transition evidence. It does not
+request or display hidden provider chain-of-thought.
+
+The synthetic fixture works without an external model. Official games require the
+optional ARC runtime plus either an authenticated Codex CLI or `OPENAI_API_KEY`. Model
+calls may incur cost, and only execution phases spend official game actions.
 
 ## Public Demo development
 
@@ -46,7 +73,7 @@ For an explicitly OpenAI-backed development run:
 ```bash
 export OPENAI_API_KEY=...
 arcworld run-offline \
-  --game ls20 \
+  --game ls20-9607627b \
   --environments-dir environment_files \
   --workspace .arcworld \
   --action-budget 500 \
@@ -73,7 +100,12 @@ arcworld run-offline \
 ```
 
 Each completion runs in a fresh empty, read-only directory with repository rules and
-user configuration excluded. The run fails closed if the model attempts a tool call.
+user configuration excluded. The run fails closed if the transcript reports a tool
+call. This rejection happens after the CLI process returns, so the Codex transport is a
+development convenience, not a strict confidentiality boundary for official
+evaluation. Prefer the Responses API transport when strict text-only request
+construction is required.
+
 The event record retains the OpenAI provider thread ID, token usage, CLI version and
 binary hash, transcript hash, full response, and generated source links.
 

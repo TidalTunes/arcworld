@@ -12,7 +12,7 @@ from arcworld.agent_contracts import AgentResult
 from arcworld.history import EpisodeHistory
 from arcworld.planning.executor import ExecutionStep
 from arcworld.storage import RunStore
-from arcworld.types import Action, GameStatus, Observation
+from arcworld.types import Action, GameStatus, Observation, Transition
 
 
 @dataclass(slots=True)
@@ -78,8 +78,21 @@ class AgentJournal:
         )
         return result
 
-    def execution(self, model_digest: str, plan_digest: str) -> ExecutionJournal:
-        return ExecutionJournal(self, model_digest, plan_digest)
+    def execution(
+        self,
+        model_digest: str,
+        plan_digest: str,
+        *,
+        plan_id: str = "",
+        controller_version: int | None = None,
+    ) -> ExecutionJournal:
+        return ExecutionJournal(
+            self,
+            model_digest,
+            plan_digest,
+            plan_id=plan_id,
+            controller_version=controller_version,
+        )
 
     def _record(self, kind: str, payload: dict[str, object]) -> None:
         if self.store and self.run_id:
@@ -91,26 +104,37 @@ class ExecutionJournal:
     parent: AgentJournal
     model_digest: str
     plan_digest: str
+    plan_id: str = ""
+    controller_version: int | None = None
 
     def intent(self, action: Action) -> None:
+        control = self._control_fields()
         self.parent._record(
             "action_intent",
             {
                 "action": action.to_jsonable(),
                 "model_digest": self.model_digest,
                 "plan_digest": self.plan_digest,
+                **control,
             },
         )
 
     def raw(self, action: Action, predicted: Observation, actual: Observation) -> None:
-        transition = self.parent.history.append(action, actual)
+        transition = Transition(
+            index=len(self.parent.history.transitions),
+            before=self.parent.history.latest,
+            action=action,
+            after=actual,
+        )
         self.parent._record(
             "transition_raw",
             {
                 "transition": transition.to_jsonable(),
                 "predicted": predicted.to_jsonable(),
+                **self._control_fields(),
             },
         )
+        self.parent.history.transitions.append(transition)
 
     def analysis(self, step: ExecutionStep) -> None:
         self.parent._record(
@@ -120,8 +144,17 @@ class ExecutionJournal:
                 "diff": step.diff.to_jsonable(),
                 "model_digest": self.model_digest,
                 "plan_digest": self.plan_digest,
+                **self._control_fields(),
             },
         )
+
+    def _control_fields(self) -> dict[str, object]:
+        value: dict[str, object] = {}
+        if self.plan_id:
+            value["plan_id"] = self.plan_id
+        if self.controller_version is not None:
+            value["controller_version"] = self.controller_version
+        return value
 
 
 def _mapping_digest(value: Mapping[str, Any]) -> str:
